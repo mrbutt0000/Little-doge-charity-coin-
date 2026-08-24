@@ -3,151 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$LDOGE Mini App - TON Connect</title>
+    <title>$LDOGE Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <style>
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 400px;
-            margin: auto;
-            padding-top: 10px;
-        }
-        .logo {
-            font-size: 50px;
-            margin-bottom: 5px;
-        }
-        .card {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 16px;
-            margin-top: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            border: 1px solid #334155;
-        }
-        .balance-title {
-            color: #94a3b8;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .balance-amount {
-            font-size: 34px;
-            font-weight: bold;
-            color: #f59e0b;
-            margin: 10px 0;
-        }
-        .btn {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            border: none;
-            width: 100%;
-            padding: 14px;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        #ton-connect-button {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        .tasks-section {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .task-item {
-            background: #1e293b;
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #334155;
-        }
-        .task-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <div class="logo">🐕</div>
-        <h2>$LDOGE Mini App</h2>
-        
-        <div id="ton-connect-button"></div>
-
-        <div class="card">
-            <div class="balance-title">Your Total Balance</div>
-            <div class="balance-amount" id="balance">0 LDOGE</div>
-            <button class="btn" onclick="claimTokens()">🎁 Claim 5 LDOGE</button>
+        <div class="header">
+            <div class="logo-area">🐕 $LDOGE</div>
+            <div class="username-badge" id="user-name">Loading...</div>
         </div>
 
-        <div class="tasks-section">
-            <h3>📋 Task Center</h3>
-            <div class="task-item">
-                <span>Join Telegram Channel (+10)</span>
-                <button class="task-btn" onclick="openChannel()">Join</button>
+        <div id="section-dashboard" class="app-section">
+            <div class="card">
+                <div class="balance-title">Your Total Balance</div>
+                <div class="balance-amount" id="balance">0 LDOGE</div>
+                
+                <button class="btn" id="claim-btn" onclick="claimReward()">🎁 Claim 5 LDOGE</button>
+                <p id="claim-timer" style="font-size: 12px; color: #94a3b8; margin-top: 8px; text-align: center;">Loading timer...</p>
             </div>
-            <div class="task-item">
-                <span>Follow on X (+10)</span>
-                <button class="task-btn" onclick="openTwitter()">Follow</button>
+
+            <div class="card">
+                <div class="section-title">📅 Daily Check-in</div>
+                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Check in daily (+10% reward increase). Don't miss a day!</p>
+                <button class="btn" id="checkin-btn" onclick="claimDailyCheckIn()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">Claim Daily Check-in</button>
+            </div>
+        </div>
+
+        <div id="section-tasks" class="app-section" style="display:none;">
+            <div class="section-title">📋 Task Center</div>
+            <div class="card">
+                <div class="task-item">
+                    <span>📢 Join Telegram Channel <br><b style="color:#f59e0b">+50 LDOGE</b></span>
+                    <button class="task-btn" onclick="verifyTask('tg', 50)">Verify</button>
+                </div>
+                <div class="task-item">
+                    <span>🐦 Follow on X / Twitter <br><b style="color:#f59e0b">+50 LDOGE</b></span>
+                    <button class="task-btn" onclick="verifyTask('x', 50)">Verify</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-wallet" class="app-section" style="display:none;">
+            <div class="section-title">💼 Wallet Systems</div>
+            
+            <div class="card">
+                <p style="font-size: 13px; color: #94a3b8; margin-bottom: 10px;"><b>TON Wallet</b> (Auto Connect)</p>
+                <div id="ton-connect-button" style="display:flex; justify-content:center;"></div>
+            </div>
+
+            <div class="card">
+                <p style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;"><b>Base Chain Wallet</b> (Manual)</p>
+                <input type="text" id="base-wallet-input" class="input-box" placeholder="Enter 0x... address">
+                <button class="btn" onclick="saveBaseWallet()" style="background: #3b82f6;">Save Base Wallet</button>
+            </div>
+        </div>
+
+        <div id="section-ref" class="app-section" style="display:none;">
+            <div class="section-title">👥 Invite Friends</div>
+            <div class="card">
+                <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Invite friends and earn <b>25% bonus</b> from their mining/claims! Minimum 3 invites required for verification.</p>
+                <button class="btn" onclick="copyRefLink()">🔗 Copy Referral Link</button>
+            </div>
+        </div>
+
+        <div id="section-profile" class="app-section" style="display:none;">
+            <div class="section-title">👤 User Profile</div>
+            <div class="card" style="text-align: left;">
+                <p style="margin-bottom: 8px;">🆔 <b>User ID:</b> <span id="profile-id" style="color:#38bdf8;">-</span></p>
+                <p style="margin-bottom: 8px;">👤 <b>Name:</b> <span id="profile-name" style="color:#38bdf8;">-</span></p>
+                <p style="margin-bottom: 8px;">💰 <b>Balance:</b> <span id="profile-bal" style="color:#f59e0b;">-</span></p>
+                <p style="margin-bottom: 8px;">👥 <b>Invites:</b> <span id="profile-invites" style="color:#38bdf8;">0 / 3</span></p>
+                <p style="margin-bottom: 8px;">🪙 <b>Base Wallet:</b> <span id="profile-base" style="color:#94a3b8; font-size:12px;">Not Connected</span></p>
+                <p style="margin-bottom: 0;">💎 <b>TON Wallet:</b> <span id="profile-ton" style="color:#94a3b8; font-size:12px;">Not Connected</span></p>
+            </div>
+        </div>
+
+        <div id="section-leaderboard" class="app-section" style="display:none;">
+            <div class="section-title">🏆 Top 100 Leaderboard</div>
+            <div class="card" id="leaderboard-list">
+                <p style="color: #94a3b8;">Loading...</p>
             </div>
         </div>
     </div>
 
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
+    <div class="nav-bar">
+        <a class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard">🏠 <span>Home</span></a>
+        <a class="nav-item" onclick="switchTab('tasks')" id="nav-tasks">📋 <span>Tasks</span></a>
+        <a class="nav-item" onclick="switchTab('wallet')" id="nav-wallet">💼 <span>Wallet</span></a>
+        <a class="nav-item" onclick="switchTab('ref')" id="nav-ref">👥 <span>Invite</span></a>
+        <a class="nav-item" onclick="switchTab('profile')" id="nav-profile">👤 <span>Profile</span></a>
+        <a class="nav-item" onclick="switchTab('leaderboard')" id="nav-leaderboard">🏆 <span>Rank</span></a>
+    </div>
 
-        // Initialize TON Connect UI (Auto Wallet Connection)
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://raw.githubusercontent.com/ton-connect/docs/main/media/manifest_example.json',
-            buttonRootId: 'ton-connect-button'
-        });
-
-        // Listen when user connects wallet automatically
-        tonConnectUI.onStatusChange(walletInfo => {
-            if (walletInfo) {
-                console.log("Wallet Connected:", walletInfo.account.address);
-                tg.showAlert("TON Wallet Connected Successfully!");
-            }
-        });
-
-        let userBalance = 0;
-
-        function claimTokens() {
-            userBalance += 5;
-            document.getElementById('balance').innerText = userBalance + " LDOGE";
-            tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert("Congratulations! You successfully claimed 5 LDOGE.");
-        }
-
-        function openChannel() {
-            tg.openTelegramLink("https://t.me/Little_Doge_coin");
-        }
-
-        function openTwitter() {
-            tg.openLink("https://x.com/LittleDogecoin");
-        }
-    </script>
+    <script src="firebase.js"></script>
+    <script src="script.js"></script>
 </body>
-  </html>
-  
+    </html>
+    
