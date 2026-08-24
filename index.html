@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$LDOGE Mini App - TON Connect</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding-top: 10px;
+        }
+        .logo {
+            font-size: 50px;
+            margin-bottom: 5px;
+        }
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 16px;
+            margin-top: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+        .balance-title {
+            color: #94a3b8;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .balance-amount {
+            font-size: 34px;
+            font-weight: bold;
+            color: #f59e0b;
+            margin: 10px 0;
+        }
+        .btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            width: 100%;
+            padding: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        #ton-connect-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .tasks-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .task-item {
+            background: #1e293b;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #334155;
+        }
+        .task-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">🐕</div>
+        <h2>$LDOGE Mini App</h2>
+        
+        <div id="ton-connect-button"></div>
+
+        <div class="card">
+            <div class="balance-title">Your Total Balance</div>
+            <div class="balance-amount" id="balance">0 LDOGE</div>
+            <button class="btn" onclick="claimTokens()">🎁 Claim 5 LDOGE</button>
+        </div>
+
+        <div class="tasks-section">
+            <h3>📋 Task Center</h3>
+            <div class="task-item">
+                <span>Join Telegram Channel (+10)</span>
+                <button class="task-btn" onclick="openChannel()">Join</button>
+            </div>
+            <div class="task-item">
+                <span>Follow on X (+10)</span>
+                <button class="task-btn" onclick="openTwitter()">Follow</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Initialize TON Connect UI (Auto Wallet Connection)
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://raw.githubusercontent.com/ton-connect/docs/main/media/manifest_example.json',
+            buttonRootId: 'ton-connect-button'
+        });
+
+        // Listen when user connects wallet automatically
+        tonConnectUI.onStatusChange(walletInfo => {
+            if (walletInfo) {
+                console.log("Wallet Connected:", walletInfo.account.address);
+                tg.showAlert("TON Wallet Connected Successfully!");
+            }
+        });
+
+        let userBalance = 0;
+
+        function claimTokens() {
+            userBalance += 5;
+            document.getElementById('balance').innerText = userBalance + " LDOGE";
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert("Congratulations! You successfully claimed 5 LDOGE.");
+        }
+
+        function openChannel() {
+            tg.openTelegramLink("https://t.me/Little_Doge_coin");
+        }
+
+        function openTwitter() {
+            tg.openLink("https://x.com/LittleDogecoin");
+        }
+    </script>
+</body>
+  </html>
+  
