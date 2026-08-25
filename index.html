@@ -7,7 +7,61 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body {
+            background: radial-gradient(circle at top, #1e1b4b, #0f172a, #020617);
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            min-height: 100vh;
+        }
+        .container { max-width: 440px; margin: auto; padding-bottom: 90px; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px);
+            padding: 12px 18px; border-radius: 14px; margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .logo-area { font-weight: bold; font-size: 18px; color: #f59e0b; display: flex; align-items: center; gap: 8px; }
+        .username-badge { background: #334155; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #38bdf8; }
+        .card {
+            background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px);
+            padding: 24px; border-radius: 20px; margin-bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: left;
+        }
+        .balance-title { color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; text-align: center; }
+        .balance-amount { font-size: 38px; font-weight: 800; color: #f59e0b; margin: 10px 0; text-shadow: 0 0 20px rgba(245, 158, 11, 0.4); text-align: center; }
+        .btn {
+            background: linear-gradient(135deg, #f59e0b, #ea580c); border: none; width: 100%;
+            padding: 14px; color: white; font-size: 15px; font-weight: bold; border-radius: 14px;
+            cursor: pointer; margin-top: 12px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        .btn:active { transform: scale(0.97); }
+        .task-item, .lb-item {
+            background: rgba(15, 23, 42, 0.6); padding: 12px 14px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.05); font-size: 13px;
+        }
+        .task-btn {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border: none;
+            padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+        }
+        .input-box {
+            width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155;
+            border-radius: 10px; color: white; margin-top: 10px; font-size: 14px;
+        }
+        .nav-bar {
+            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 92%; max-width: 420px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
+            display: flex; justify-content: space-around; padding: 10px 0; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7); z-index: 100;
+        }
+        .nav-item { color: #94a3b8; text-decoration: none; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+        .nav-item.active { color: #f59e0b; font-weight: bold; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
+        .section-title { text-align: left; font-size: 16px; font-weight: bold; margin-bottom: 12px; color: #f8fafc; }
+    </style>
 </head>
 <body>
 
@@ -20,15 +74,14 @@
         <div id="section-dashboard" class="app-section">
             <div class="card">
                 <div class="balance-title">Your Total Balance</div>
-                <div class="balance-amount" id="balance">0 LDOGE</div>
-                
+                <div class="balance-amount" id="balance">10 LDOGE</div>
                 <button class="btn" id="claim-btn" onclick="claimReward()">🎁 Claim 5 LDOGE</button>
-                <p id="claim-timer" style="font-size: 12px; color: #94a3b8; margin-top: 8px; text-align: center;">Loading timer...</p>
+                <p id="claim-timer" style="font-size: 12px; color: #94a3b8; margin-top: 8px; text-align: center;">Ready to Claim! ✅</p>
             </div>
 
             <div class="card">
                 <div class="section-title">📅 Daily Check-in</div>
-                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Check in daily (+10% reward increase). Don't miss a day!</p>
+                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">Check in daily (+10% reward increase).</p>
                 <button class="btn" id="checkin-btn" onclick="claimDailyCheckIn()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">Claim Daily Check-in</button>
             </div>
         </div>
@@ -37,24 +90,22 @@
             <div class="section-title">📋 Task Center</div>
             <div class="card">
                 <div class="task-item">
-                    <span>📢 Join Telegram Channel <br><b style="color:#f59e0b">+50 LDOGE</b></span>
-                    <button class="task-btn" onclick="verifyTask('tg', 50)">Verify</button>
+                    <span>📢 Join Telegram Channel <br><b style="color:#f59e0b">+5 LDOGE</b></span>
+                    <button class="task-btn" onclick="verifyTask('tg', 5, 'https://t.me/Little_Doge_coin')">Verify</button>
                 </div>
                 <div class="task-item">
-                    <span>🐦 Follow on X / Twitter <br><b style="color:#f59e0b">+50 LDOGE</b></span>
-                    <button class="task-btn" onclick="verifyTask('x', 50)">Verify</button>
+                    <span>🐦 Follow on X / Twitter <br><b style="color:#f59e0b">+5 LDOGE</b></span>
+                    <button class="task-btn" onclick="verifyTask('x', 5, 'https://x.com/LittleDogecoin')">Verify</button>
                 </div>
             </div>
         </div>
 
         <div id="section-wallet" class="app-section" style="display:none;">
             <div class="section-title">💼 Wallet Systems</div>
-            
             <div class="card">
                 <p style="font-size: 13px; color: #94a3b8; margin-bottom: 10px;"><b>TON Wallet</b> (Auto Connect)</p>
                 <div id="ton-connect-button" style="display:flex; justify-content:center;"></div>
             </div>
-
             <div class="card">
                 <p style="font-size: 13px; color: #94a3b8; margin-bottom: 5px;"><b>Base Chain Wallet</b> (Manual)</p>
                 <input type="text" id="base-wallet-input" class="input-box" placeholder="Enter 0x... address">
@@ -65,7 +116,7 @@
         <div id="section-ref" class="app-section" style="display:none;">
             <div class="section-title">👥 Invite Friends</div>
             <div class="card">
-                <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Invite friends and earn <b>25% bonus</b> from their mining/claims! Minimum 3 invites required for verification.</p>
+                <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Invite friends and earn <b>25% bonus</b>! Min 3 invites required.</p>
                 <button class="btn" onclick="copyRefLink()">🔗 Copy Referral Link</button>
             </div>
         </div>
@@ -75,17 +126,18 @@
             <div class="card" style="text-align: left;">
                 <p style="margin-bottom: 8px;">🆔 <b>User ID:</b> <span id="profile-id" style="color:#38bdf8;">-</span></p>
                 <p style="margin-bottom: 8px;">👤 <b>Name:</b> <span id="profile-name" style="color:#38bdf8;">-</span></p>
-                <p style="margin-bottom: 8px;">💰 <b>Balance:</b> <span id="profile-bal" style="color:#f59e0b;">-</span></p>
-                <p style="margin-bottom: 8px;">👥 <b>Invites:</b> <span id="profile-invites" style="color:#38bdf8;">0 / 3</span></p>
+                <p style="margin-bottom: 8px;">💰 <b>Balance:</b> <span id="profile-bal" style="color:#f59e0b;">10 LDOGE</span></p>
+                <p style="margin-bottom: 8px;">👥 <b>Invites:</b> <span id="profile-invites" style="color:#38bdf8;">0 / 3 (Req)</span></p>
                 <p style="margin-bottom: 8px;">🪙 <b>Base Wallet:</b> <span id="profile-base" style="color:#94a3b8; font-size:12px;">Not Connected</span></p>
                 <p style="margin-bottom: 0;">💎 <b>TON Wallet:</b> <span id="profile-ton" style="color:#94a3b8; font-size:12px;">Not Connected</span></p>
             </div>
         </div>
 
         <div id="section-leaderboard" class="app-section" style="display:none;">
-            <div class="section-title">🏆 Top 100 Leaderboard</div>
+            <div class="section-title">🏆 Top Leaderboard</div>
             <div class="card" id="leaderboard-list">
-                <p style="color: #94a3b8;">Loading...</p>
+                <div class="lb-item"><span>#1 CryptoKing</span><span style="color:#f59e0b;">500 LDOGE</span></div>
+                <div class="lb-item"><span>#2 DogeMaster</span><span style="color:#f59e0b;">420 LDOGE</span></div>
             </div>
         </div>
     </div>
@@ -99,12 +151,148 @@
         <a class="nav-item" onclick="switchTab('leaderboard')" id="nav-leaderboard">🏆 <span>Rank</span></a>
     </div>
 
-       <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script>
+        let tg = window.Telegram.WebApp;
+        try { tg.expand(); } catch(e) {}
 
-    <script src="firebase.js"></script>
-    <script src="script.js"></script>
+        let userId = "user_" + Math.floor(100000 + Math.random() * 900000);
+        let userName = "Crypto User";
+        
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            if (tg.initDataUnsafe.user.id) userId = tg.initDataUnsafe.user.id.toString();
+            if (tg.initDataUnsafe.user.first_name) userName = tg.initDataUnsafe.user.first_name;
+        }
+
+        document.getElementById('user-name').innerText = userName;
+        document.getElementById('profile-id').innerText = userId;
+        document.getElementById('profile-name').innerText = userName;
+
+        let userBalance = localStorage.getItem('ldoge_bal') ? parseInt(localStorage.getItem('ldoge_bal')) : 10;
+        let lastClaim = localStorage.getItem('ldoge_last_claim') ? parseInt(localStorage.getItem('ldoge_last_claim')) : 0;
+        let baseWallet = localStorage.getItem('ldoge_base') || "";
+        
+        function updateDisplay() {
+            document.getElementById('balance').innerText = userBalance + " LDOGE";
+            document.getElementById('profile-bal').innerText = userBalance + " LDOGE";
+            if(baseWallet) {
+                document.getElementById('profile-base').innerText = baseWallet;
+            }
+        }
+        updateDisplay();
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.app-section').forEach(sec => sec.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            let targetSec = document.getElementById('section-' + tabName);
+            let targetNav = document.getElementById('nav-' + tabName);
+            if(targetSec) targetSec.style.display = 'block';
+            if(targetNav) targetNav.classList.add('active');
+        }
+
+        // 3 Hour Claim Timer Logic
+        const CLAIM_COOLDOWN = 3 * 60 * 60 * 1000;
+        function checkTimer() {
+            let now = Date.now();
+            let elapsed = now - lastClaim;
+            let btn = document.getElementById('claim-btn');
+            let timerText = document.getElementById('claim-timer');
+
+            if (lastClaim === 0 || elapsed >= CLAIM_COOLDOWN) {
+                btn.disabled = false;
+                btn.innerText = "🎁 Claim 5 LDOGE";
+                timerText.innerText = "Ready to Claim! ✅";
+            } else {
+                let timeLeft = CLAIM_COOLDOWN - elapsed;
+                let h = Math.floor(timeLeft / (60 * 60 * 1000));
+                let m = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                let s = Math.floor((timeLeft % (60 * 1000)) / 1000);
+                btn.disabled = true;
+                btn.innerText = "⏳ Claim in Progress...";
+                timerText.innerText = `Available in: ${h}h ${m}m ${s}s`;
+            }
+        }
+
+        function claimReward() {
+            userBalance += 5;
+            lastClaim = Date.now();
+            localStorage.setItem('ldoge_bal', userBalance);
+            localStorage.setItem('ldoge_last_claim', lastClaim);
+            updateDisplay();
+            alert("🎉 Successfully claimed 5 LDOGE!");
+        }
+        setInterval(checkTimer, 1000);
+
+        // Daily Check-in
+        function claimDailyCheckIn() {
+            let today = new Date().toDateString();
+            let lastCheck = localStorage.getItem('ldoge_checkin');
+            if (lastCheck === today) {
+                alert("⏳ Already checked in today!");
+                return;
+            }
+            userBalance += 3;
+            localStorage.setItem('ldoge_bal', userBalance);
+            localStorage.setItem('ldoge_checkin', today);
+            updateDisplay();
+            alert("🎉 Daily check-in claimed! +3 LDOGE");
+        }
+
+        // Task Center (Exact 5 Coins + Link)
+        function verifyTask(taskId, reward, link) {
+            let completed = localStorage.getItem('task_' + taskId);
+            if (completed) {
+                alert("✅ Task already completed!");
+                return;
+            }
+            window.open(link, "_blank");
+
+            userBalance += reward;
+            localStorage.setItem('ldoge_bal', userBalance);
+            localStorage.setItem('task_' + taskId, 'true');
+            updateDisplay();
+            alert(`🎉 Task verified! +${reward} LDOGE added.`);
+        }
+
+        // Base Wallet Save
+        function saveBaseWallet() {
+            let addr = document.getElementById('base-wallet-input').value.trim();
+            if (!addr.startsWith('0x') || addr.length < 10) {
+                alert("❌ Enter a valid Base address (0x...)");
+                return;
+            }
+            baseWallet = addr;
+            localStorage.setItem('ldoge_base', addr);
+            updateDisplay();
+            alert("✅ Base wallet saved successfully!");
+        }
+
+        // Referral Link
+        function copyRefLink() {
+            let ref = `https://t.me/Little_doge_charity_bot?start=${userId}`;
+            navigator.clipboard.writeText(ref);
+            alert("🔗 Referral link copied!");
+        }
+
+        // TON Connect Auto Connect
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (typeof TON_CONNECT_UI !== 'undefined') {
+                    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                        manifestUrl: 'https://raw.githubusercontent.com/ton-connect/docs/main/media/manifest_example.json',
+                        buttonRootId: 'ton-connect-button'
+                    });
+                    tonConnectUI.onStatusChange(wallet => {
+                        if (wallet) {
+                            let addr = wallet.account.address;
+                            document.getElementById('profile-ton').innerText = addr.slice(0, 6) + '...';
+                            alert("💎 TON Wallet Connected!");
+                        }
+                    });
+                }
+            } catch(e) {}
+        });
+    </script>
 </body>
-</html>
-
-    
+                                                                                                                     </html>
+                                         
