@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$LDOGE - Tasks</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; padding: 16px; max-width: 480px; margin: 0 auto; }
+        .card { background: #131c31; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .task-btn { background: #2563eb; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .task-btn:disabled { background: #059669; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🎯 Task Center (One-Time)</h2>
+
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <p style="font-size: 13px; font-weight: bold;">Follow on X (Twitter)</p>
+            <p style="font-size: 11px; color: #34d399; margin-top: 2px;">+15 Coins</p>
+        </div>
+        <button id="taskBtn1" onclick="completeTask(1, 'https://x.com/LittleDogecoin')" class="task-btn">Start</button>
+    </div>
+
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <p style="font-size: 13px; font-weight: bold;">Join Telegram Channel</p>
+            <p style="font-size: 11px; color: #34d399; margin-top: 2px;">+15 Coins</p>
+        </div>
+        <button id="taskBtn2" onclick="completeTask(2, 'https://t.me/Little_Doge_coin')" class="task-btn">Start</button>
+    </div>
+
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <p style="font-size: 13px; font-weight: bold;">Visit Official Website</p>
+            <p style="font-size: 11px; color: #34d399; margin-top: 2px;">+15 Coins</p>
+        </div>
+        <button id="taskBtn3" onclick="completeTask(3, 'https://littledogecharity.online/')" class="task-btn">Start</button>
+    </div>
+
+<script>
+    let userId = localStorage.getItem('ldoge_uid') || "user_test";
+    let currentBalance = 10;
+
+    // Firebase Initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+      authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+      databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+      projectId: "cyrusprotocol-b3080",
+      storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+      messagingSenderId: "457843406848",
+      appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userRef = db.ref('users/' + userId);
+
+    userRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            currentBalance = data.balance || 10;
+        }
+    });
+
+    function checkTasksOnLoad() {
+        for(let i = 1; i <= 3; i++) {
+            if(localStorage.getItem('task_' + i) === 'completed') {
+                const btn = document.getElementById('taskBtn' + i);
+                if(btn) {
+                    btn.innerText = "Completed ✅";
+                    btn.disabled = true;
+                }
+            }
+        }
+    }
+
+    function completeTask(taskId, url) {
+        if(localStorage.getItem('task_' + taskId) === 'completed') return;
+        
+        window.open(url, '_blank');
+        setTimeout(() => {
+            currentBalance += 15;
+            localStorage.setItem('task_' + taskId, 'completed');
+            userRef.update({ balance: currentBalance });
+            
+            const btn = document.getElementById('taskBtn' + taskId);
+            btn.innerText = "Completed ✅";
+            btn.disabled = true;
+            
+            alert("Task completed! +15 Coins added.");
+        }, 1500);
+    }
+
+    checkTasksOnLoad();
+</script>
+
+</body>
+</html>

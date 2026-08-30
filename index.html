@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$LDOGE - Dashboard</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; padding: 16px; max-width: 480px; margin: 0 auto; }
+        .card { background: #131c31; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .coin-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0f19; font-weight: 900; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(245,158,11,0.4); }
+        .coin-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px;">🐕</span>
+            <span style="font-weight: bold; font-size: 14px; color: #f59e0b;">$LDOGE App</span>
+        </div>
+        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 4px 10px; border-radius: 8px; font-size: 11px; color: #f59e0b; font-weight: bold;">
+            🚀 Mining Active
+        </div>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 20px;">
+        <p style="font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px;">Total Balance</p>
+        <h1 id="balanceDisplay" style="font-size: 36px; font-weight: 900; color: #f59e0b; margin-top: 4px;">10</h1>
+        <p style="font-size: 11px; color: #94a3b8; font-weight: 600;">$LDOGE TOKENS</p>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <p id="statusText" style="font-size: 11px; font-weight: bold; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Ready to Claim</p>
+        <div id="timerDisplay" style="font-size: 28px; font-family: monospace; font-weight: 900; color: #22d3ee; margin-bottom: 16px;">00:00:00</div>
+        
+        <button id="claimBtn" onclick="handleClaim()" class="coin-btn" style="width: 110px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span style="font-size: 28px; margin-bottom: 2px;">🪙</span>
+            <span id="btnText" style="font-size: 10px; text-transform: uppercase; font-weight: 800;">CLAIM 🚀</span>
+        </button>
+        <p style="font-size: 11px; color: #94a3b8; margin-top: 14px;">Reward: <span style="color: #34d399; font-weight: bold;">+5 Coins</span></p>
+    </div>
+
+<script>
+    let userId = localStorage.getItem('ldoge_uid');
+    if (!userId) {
+        userId = "user_" + Math.floor(Math.random() * 90000 + 10000);
+        localStorage.setItem('ldoge_uid', userId);
+    }
+
+    let balance = 10;
+    let miningEndTime = 0;
+    let timerInterval = null;
+    const COIN_DURATION = 3 * 60 * 60;
+
+    // Firebase Initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+      authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+      databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+      projectId: "cyrusprotocol-b3080",
+      storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+      messagingSenderId: "457843406848",
+      appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userRef = db.ref('users/' + userId);
+
+    userRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            balance = data.balance || 10;
+            miningEndTime = data.miningEndTime || 0;
+            updateUI();
+            checkMiningTimer();
+        } else {
+            userRef.set({ balance: balance, miningEndTime: 0 });
+        }
+    });
+
+    function updateUI() {
+        document.getElementById('balanceDisplay').innerText = balance;
+    }
+
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function handleClaim() {
+        balance += 5;
+        miningEndTime = Math.floor(Date.now() / 1000) + COIN_DURATION;
+        userRef.update({ balance: balance, miningEndTime: miningEndTime });
+        startCountdown(COIN_DURATION);
+    }
+
+    function checkMiningTimer() {
+        if (miningEndTime > 0) {
+            let remaining = miningEndTime - Math.floor(Date.now() / 1000);
+            if (remaining > 0) startCountdown(remaining);
+            else resetTimerUI();
+        } else {
+            resetTimerUI();
+        }
+    }
+
+    function startCountdown(durationSeconds) {
+        if (timerInterval) clearInterval(timerInterval);
+        const btn = document.getElementById('claimBtn');
+        document.getElementById('statusText').innerText = "Mining in Progress";
+        document.getElementById('btnText').innerText = "MINING";
+        btn.disabled = true;
+
+        let timeLeft = durationSeconds;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                resetTimerUI();
+            }
+        }, 1000);
+    }
+
+    function resetTimerUI() {
+        document.getElementById('statusText').innerText = "Ready to Claim";
+        document.getElementById('btnText').innerText = "CLAIM 🚀";
+        document.getElementById('claimBtn').disabled = false;
+        document.getElementById('timerDisplay').innerText = "00:00:00";
+    }
+</script>
+</body>
+</html>

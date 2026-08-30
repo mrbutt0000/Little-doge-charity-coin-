@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$LDOGE - Profile & Activity</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #0b0f19; color: #ffffff; padding: 16px; max-width: 480px; margin: 0 auto; }
+        .card { background: #131c31; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .input-box { width: 100%; background: #0b0f19; border: 1px solid #334155; border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 14px; margin-top: 6px; margin-bottom: 6px; }
+        .primary-btn { width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0f19; font-weight: bold; border: none; border-radius: 10px; padding: 12px; cursor: pointer; font-size: 14px; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 6px; }
+    </style>
+</head>
+<body>
+
+    <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👤 User Profile & Activity</h2>
+    
+    <!-- User Info Card -->
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+            <div style="width: 50px; height: 50px; background: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #0b0f19;" id="userAvatar">🐕</div>
+            <div>
+                <h3 id="userName" style="font-size: 16px; font-weight: bold;">Loading Name...</h3>
+                <p id="userHandle" style="font-size: 12px; color: #94a3b8;">@username</p>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <span style="color: #94a3b8;">Unique ID:</span>
+            <strong id="userIdDisplay" style="color: #22d3ee;">-</strong>
+        </div>
+        <div class="info-row">
+            <span style="color: #94a3b8;">Total Balance:</span>
+            <strong id="pBalance" style="color: #f59e0b;">0 Coins</strong>
+        </div>
+        <div class="info-row">
+            <span style="color: #94a3b8;">Referral Team:</span>
+            <strong id="pTeamCount" style="color: #34d399;">0 Friends</strong>
+        </div>
+        <div class="info-row" style="border-bottom: none;">
+            <span style="color: #94a3b8;">Solana Wallet:</span>
+            <strong id="pSolWallet" style="color: #9945FF; font-size: 11px;">Not Linked</strong>
+        </div>
+    </div>
+
+    <!-- KYC Submission Card -->
+    <div class="card">
+        <p id="kycStatus" style="font-size: 12px; font-weight: bold; color: #f59e0b; margin-bottom: 10px;">Status: Pending ⏳</p>
+        <input type="text" id="kName" class="input-box" placeholder="Full Name">
+        <input type="text" id="kFather" class="input-box" placeholder="Father's Name">
+        <input type="text" id="kCountry" class="input-box" placeholder="Country">
+        <input type="text" id="kIdNumber" class="input-box" placeholder="CNIC / Passport Number">
+        <button onclick="submitKyc()" class="primary-btn">Submit KYC 🚀</button>
+    </div>
+
+<script>
+    // Telegram WebApp Integration for User Data
+    let tgUser = null;
+    let userId = localStorage.getItem('ldoge_uid');
+
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
+        tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+        userId = "tg_" + tgUser.id;
+        localStorage.setItem('ldoge_uid', userId);
+        
+        document.getElementById('userName').innerText = (tgUser.first_name || '') + ' ' + (tgUser.last_name || '');
+        document.getElementById('userHandle').innerText = tgUser.username ? '@' + tgUser.username : '@telegram_user';
+        document.getElementById('userAvatar').innerText = (tgUser.first_name ? tgUser.first_name[0].toUpperCase() : '🐕');
+    } else {
+        if (!userId) {
+            userId = "id_" + Math.random().toString(36).substring(2, 8) + Date.now().toString(36);
+            localStorage.setItem('ldoge_uid', userId);
+        }
+        document.getElementById('userName').innerText = "Web Browser User";
+        document.getElementById('userHandle').innerText = "@guest";
+    }
+
+    document.getElementById('userIdDisplay').innerText = userId;
+
+    // Firebase Initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+      authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+      databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+      projectId: "cyrusprotocol-b3080",
+      storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+      messagingSenderId: "457843406848",
+      appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const userRef = db.ref('users/' + userId);
+
+    // Fetch user activity & data from Firebase
+    userRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            document.getElementById('pBalance').innerText = (data.balance || 10) + " Coins";
+            document.getElementById('pTeamCount').innerText = (data.friends ? data.friends.length : 0) + " Friends";
+            document.getElementById('pSolWallet').innerText = data.solWallet ? data.solWallet.substring(0, 8) + "..." : "Not Linked";
+            
+            if (data.kycStatus) {
+                document.getElementById('kycStatus').innerText = "Status: " + data.kycStatus;
+            }
+        } else {
+            userRef.set({ 
+                balance: 10, 
+                telegramName: tgUser ? tgUser.first_name : "Browser User",
+                telegramUsername: tgUser ? tgUser.username : "guest"
+            });
+        }
+    });
+
+    function submitKyc() {
+        const name = document.getElementById('kName').value.trim();
+        const father = document.getElementById('kFather').value.trim();
+        const country = document.getElementById('kCountry').value.trim();
+        const idNum = document.getElementById('kIdNumber').value.trim();
+
+        if(!name || !father || !country || !idNum) { 
+            alert("Please fill all KYC fields!"); 
+            return; 
+        }
+
+        userRef.update({ 
+            kycStatus: "Submitted / Under Review 🔍",
+            kycDetails: { fullName: name, fatherName: father, country: country, idNumber: idNum }
+        });
+
+        document.getElementById('kycStatus').innerText = "Status: Submitted / Under Review 🔍";
+        document.getElementById('kycStatus').style.color = "#38bdf8";
+        alert("KYC Submitted Successfully!");
+    }
+</script>
+</body>
+</html>
