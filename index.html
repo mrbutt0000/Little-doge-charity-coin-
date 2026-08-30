@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$LDOGE Mini App - Live Firebase</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <title>$LDOGE Mini App</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; }
@@ -14,28 +11,22 @@
         .tab-content { display: none; padding: 16px; flex: 1; }
         .tab-content.active { display: block; }
         
-        /* Cards & UI */
         .card { background: #131c31; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .coin-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0f19; font-weight: 900; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(245,158,11,0.4); transition: transform 0.1s; }
         .coin-btn:active { transform: scale(0.95); }
         .coin-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
         
-        /* Bottom Navigation */
         .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; max-width: 480px; margin: 0 auto; right: 0; }
         .nav-item { background: none; border: none; color: #64748b; font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; font-weight: 600; flex: 1; }
         .nav-item.active { color: #f59e0b; }
         .nav-item span.icon { font-size: 18px; margin-bottom: 2px; }
 
-        /* Streak Grid */
         .streak-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; margin-top: 8px; }
         .streak-box { background: #0b0f19; border: 1px solid #1e293b; border-radius: 10px; padding: 8px 2px; font-size: 11px; color: #94a3b8; }
         .streak-box.active { background: rgba(245, 158, 11, 0.15); border-color: #f59e0b; color: #f59e0b; font-weight: bold; }
 
-        /* Form Controls */
         .input-box { width: 100%; background: #0b0f19; border: 1px solid #334155; border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 14px; margin-top: 6px; margin-bottom: 12px; }
         .primary-btn { width: 100%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0f19; font-weight: bold; border: none; border-radius: 10px; padding: 12px; cursor: pointer; font-size: 14px; }
-        
-        /* Leaderboard Item */
         .rank-item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1e293b; font-size: 13px; }
     </style>
 </head>
@@ -43,7 +34,7 @@
 
 <div class="app-container">
 
-    <!-- TAB 1: DASHBOARD / MINING -->
+    <!-- TAB 1: DASHBOARD -->
     <div id="tab-mining" class="tab-content active">
         <div style="display: flex; justify-content: space-between; align-items: center;" class="card">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -67,11 +58,11 @@
                 <span style="font-size: 11px; color: #34d399; font-weight: bold;">Active</span>
             </div>
             <div class="streak-grid">
-                <div id="sBox1" class="streak-box active">Day 1<br>+5</div>
-                <div id="sBox2" class="streak-box">Day 2<br>+5.8</div>
-                <div id="sBox3" class="streak-box">Day 3<br>+6.6</div>
-                <div id="sBox4" class="streak-box">Day 4<br>+7.6</div>
-                <div id="sBox5" class="streak-box">Day 5<br>+8.8</div>
+                <div class="streak-box active">Day 1<br>+5</div>
+                <div class="streak-box">Day 2<br>+5.8</div>
+                <div class="streak-box">Day 3<br>+6.6</div>
+                <div class="streak-box">Day 4<br>+7.6</div>
+                <div class="streak-box">Day 5<br>+8.8</div>
             </div>
         </div>
 
@@ -87,10 +78,9 @@
         </div>
     </div>
 
-    <!-- TAB 2: TASK CENTER -->
+    <!-- TAB 2: TASKS -->
     <div id="tab-tasks" class="tab-content">
         <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🎯 Task Center (One-Time)</h2>
-        
         <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <p style="font-size: 13px; font-weight: bold;">Follow on X (Twitter)</p>
@@ -98,7 +88,6 @@
             </div>
             <button id="taskBtn1" onclick="completeTask(1, 'https://x.com/LittleDogecoin')" style="background: #2563eb; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">Start</button>
         </div>
-
         <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <p style="font-size: 13px; font-weight: bold;">Join Telegram Channel</p>
@@ -106,7 +95,6 @@
             </div>
             <button id="taskBtn2" onclick="completeTask(2, 'https://t.me/Little_Doge_coin')" style="background: #2563eb; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">Start</button>
         </div>
-
         <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <p style="font-size: 13px; font-weight: bold;">Visit Official Website</p>
@@ -116,140 +104,70 @@
         </div>
     </div>
 
-    <!-- TAB 3: INVITE FRIENDS -->
+    <!-- TAB 3: INVITE -->
     <div id="tab-invite" class="tab-content">
         <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👥 Invite Friends</h2>
         <div class="card" style="text-align: center;">
             <p style="font-size: 13px; font-weight: bold; margin-bottom: 6px;">Earn 15 Coins Per Invite</p>
-            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 14px;">Share your link with friends. When they join, coins are instantly added!</p>
             <input type="text" readonly value="https://t.me/Little_Doge_coin?start=ref_12345" class="input-box" style="text-align: center; font-size: 12px;" id="refLink">
             <button onclick="copyRefLink()" class="primary-btn">Copy Invite Link 🔗</button>
         </div>
     </div>
 
-    <!-- TAB 4: WALLETS -->
+    <!-- TAB 4: WALLET -->
     <div id="tab-wallet" class="tab-content">
         <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👛 Wallet Connection</h2>
-        
         <div class="card">
             <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">TON Ecosystem Wallet</p>
-            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 10px;">Auto-connect via Telegram (Tonkeeper, MyTonWallet, etc.)</p>
             <button onclick="connectTonWallet()" class="primary-btn" style="background: #0098ea; color: #fff;" id="tonBtn">Connect TON Wallet ⚡</button>
         </div>
-
         <div class="card">
             <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">Base Network Wallet</p>
-            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Paste your Base wallet address manually</p>
             <input type="text" id="baseAddressInput" placeholder="0x..." class="input-box">
             <button onclick="saveBaseWallet()" style="background: #1e3a8a; color: #fff;" class="primary-btn">Save Base Address 💾</button>
         </div>
     </div>
 
-    <!-- TAB 5: PROFILE & KYC -->
+    <!-- TAB 5: PROFILE -->
     <div id="tab-profile" class="tab-content">
-        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👤 Profile & KYC Verification</h2>
-        
+        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👤 Profile & KYC</h2>
         <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <span style="font-size: 12px; font-weight: bold; color: #94a3b8;">Status:</span>
-                <span id="kycStatus" style="font-size: 12px; font-weight: bold; color: #f59e0b;">Pending / Not Verified ⏳</span>
-            </div>
-            
-            <label style="font-size: 11px; color: #94a3b8;">Full Name</label>
-            <input type="text" id="kName" class="input-box" placeholder="Enter full name">
-
-            <label style="font-size: 11px; color: #94a3b8;">Father's Name</label>
-            <input type="text" id="kFather" class="input-box" placeholder="Enter father name">
-
-            <label style="font-size: 11px; color: #94a3b8;">Country</label>
-            <input type="text" id="kCountry" class="input-box" placeholder="Enter country">
-
-            <label style="font-size: 11px; color: #94a3b8;">CNIC / Passport / License Number</label>
-            <input type="text" id="kIdNumber" class="input-box" placeholder="Enter ID number">
-
-            <label style="font-size: 11px; color: #94a3b8;">Date of Birth</label>
-            <input type="date" id="kDob" class="input-box">
-
-            <button onclick="submitKyc()" class="primary-btn">Submit Details for Approval 🚀</button>
+            <p id="kycStatus" style="font-size: 12px; font-weight: bold; color: #f59e0b; margin-bottom: 10px;">Status: Pending ⏳</p>
+            <input type="text" id="kName" class="input-box" placeholder="Full Name">
+            <input type="text" id="kFather" class="input-box" placeholder="Father's Name">
+            <input type="text" id="kCountry" class="input-box" placeholder="Country">
+            <input type="text" id="kIdNumber" class="input-box" placeholder="CNIC / Passport Number">
+            <button onclick="submitKyc()" class="primary-btn">Submit KYC 🚀</button>
         </div>
     </div>
 
-    <!-- TAB 6: LEADERBOARD -->
+    <!-- TAB 6: RANKS -->
     <div id="tab-leaderboard" class="tab-content">
-        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🏆 Top 50 Leaderboard</h2>
+        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🏆 Leaderboard</h2>
         <div id="leaderboardList">
-            <!-- Dynamic items populated from Firebase -->
+            <div class="rank-item"><span>#1 CryptoKing</span><span style="color: #f59e0b; font-weight: bold;">1,250 LDOGE</span></div>
+            <div class="rank-item"><span>#2 DogeArmy_99</span><span style="color: #f59e0b; font-weight: bold;">980 LDOGE</span></div>
         </div>
     </div>
 
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- NAVIGATION BAR -->
     <div class="nav-bar">
-        <button class="nav-item active" onclick="switchTab('mining', this)">
-            <span class="icon">⛏️</span>Mining
-        </button>
-        <button class="nav-item" onclick="switchTab('tasks', this)">
-            <span class="icon">🎯</span>Tasks
-        </button>
-        <button class="nav-item" onclick="switchTab('invite', this)">
-            <span class="icon">👥</span>Invite
-        </button>
-        <button class="nav-item" onclick="switchTab('wallet', this)">
-            <span class="icon">👛</span>Wallet
-        </button>
-        <button class="nav-item" onclick="switchTab('profile', this)">
-            <span class="icon">👤</span>Profile
-        </button>
-        <button class="nav-item" onclick="switchTab('leaderboard', this)">
-            <span class="icon">🏆</span>Ranks
-        </button>
+        <button class="nav-item active" onclick="switchTab('mining', this)"><span class="icon">⛏️</span>Mining</button>
+        <button class="nav-item" onclick="switchTab('tasks', this)"><span class="icon">🎯</span>Tasks</button>
+        <button class="nav-item" onclick="switchTab('invite', this)"><span class="icon">👥</span>Invite</button>
+        <button class="nav-item" onclick="switchTab('wallet', this)"><span class="icon">👛</span>Wallet</button>
+        <button class="nav-item" onclick="switchTab('profile', this)"><span class="icon">👤</span>Profile</button>
+        <button class="nav-item" onclick="switchTab('leaderboard', this)"><span class="icon">🏆</span>Ranks</button>
     </div>
 
 </div>
 
-<!-- FIREBASE & APP LOGIC -->
 <script>
-    // Firebase Configuration Integration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
-      authDomain: "cyrusprotocol-b3080.firebaseapp.com",
-      databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
-      projectId: "cyrusprotocol-b3080",
-      storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
-      messagingSenderId: "457843406848",
-      appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // User Identification (Mock Telegram ID or real if opened in Telegram)
-    let userId = "user_" + Math.floor(Math.random() * 90000 + 10000);
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
-        userId = "tg_" + window.Telegram.WebApp.initDataUnsafe.user.id;
-    }
-
-    let balance = 10;
-    let streak = 1;
+    let balance = parseInt(localStorage.getItem('ldoge_balance')) || 10;
+    let streak = parseInt(localStorage.getItem('ldoge_streak')) || 1;
     let timeLeft = 0;
     let timerInterval = null;
-    const COIN_DURATION = 3 * 60 * 60; // 3 hours
-
-    // Reference to this user's node in Firebase Realtime Database
-    const userRef = db.ref('users/' + userId);
-
-    // Fetch user data from Firebase on load
-    userRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            balance = data.balance || 10;
-            streak = data.streak || 1;
-        } else {
-            // First time user, save initial data
-            userRef.set({ balance: 10, streak: 1 });
-        }
-        updateUI();
-    });
+    const COIN_DURATION = 3 * 60 * 60;
 
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -269,20 +187,7 @@
         document.getElementById('balanceDisplay').innerText = balance;
         document.getElementById('streakDisplay').innerText = 'Day ' + streak;
         document.getElementById('rewardDisplay').innerText = '+' + calculateReward(streak) + ' Coins';
-
-        const btn = document.getElementById('claimBtn');
-        const btnText = document.getElementById('btnText');
-        const statusText = document.getElementById('statusText');
-
-        if (timeLeft > 0) {
-            statusText.innerText = "Mining in Progress";
-            btnText.innerText = "MINING";
-            btn.disabled = true;
-        } else {
-            statusText.innerText = "Ready to Claim";
-            btnText.innerText = "CLAIM 🚀";
-            btn.disabled = false;
-        }
+        localStorage.setItem('ldoge_balance', balance);
     }
 
     function formatTime(seconds) {
@@ -297,10 +202,6 @@
         const reward = calculateReward(streak);
         balance = Math.round((balance + reward) * 10) / 10;
         timeLeft = COIN_DURATION;
-
-        // Save updated balance to Firebase Database
-        userRef.update({ balance: balance });
-
         updateUI();
 
         if (timerInterval) clearInterval(timerInterval);
@@ -309,85 +210,40 @@
             document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                updateUI();
+                document.getElementById('statusText').innerText = "Ready to Claim";
+                document.getElementById('claimBtn').disabled = false;
             }
         }, 1000);
     }
 
     function completeTask(taskId, url) {
-        const btn = document.getElementById('taskBtn' + taskId);
-        if(btn.innerText === "Completed") return;
-        
         window.open(url, '_blank');
         setTimeout(() => {
             balance += 15;
-            userRef.update({ balance: balance });
-            btn.innerText = "Completed";
-            btn.style.background = "#059669";
-            btn.disabled = true;
             updateUI();
-            alert("Task completed! +15 Coins added to Firebase.");
-        }, 2000);
-    }
-
-    function copyRefLink() {
-        const link = document.getElementById('refLink');
-        link.select();
-        navigator.clipboard.writeText(link.value);
-        alert("Invite link copied to clipboard!");
-    }
-
-    function connectTonWallet() {
-        const btn = document.getElementById('tonBtn');
-        btn.innerText = "Connecting to Telegram Wallet...";
-        setTimeout(() => {
-            btn.innerText = "Connected: EQD...49X";
-            btn.style.background = "#059669";
-            userRef.update({ tonWallet: "Connected" });
-            alert("TON Wallet successfully auto-connected and saved to Firebase!");
+            alert("Task completed! +15 Coins added.");
         }, 1500);
     }
 
+    function copyRefLink() {
+        navigator.clipboard.writeText("https://t.me/Little_Doge_coin?start=ref_12345");
+        alert("Invite link copied!");
+    }
+
+    function connectTonWallet() {
+        alert("TON Wallet Connected Successfully!");
+    }
+
     function saveBaseWallet() {
-        const addr = document.getElementById('baseAddressInput').value;
-        if(addr.length < 10) { alert("Please enter a valid wallet address!"); return; }
-        userRef.update({ baseWallet: addr });
-        alert("Base wallet address saved to Firebase!");
+        alert("Base Wallet Saved!");
     }
 
     function submitKyc() {
-        const name = document.getElementById('kName').value;
-        if(!name) { alert("Please fill in your details."); return; }
-        
-        userRef.update({
-            kyc: {
-                fullName: name,
-                fatherName: document.getElementById('kFather').value,
-                country: document.getElementById('kCountry').value,
-                idNumber: document.getElementById('kIdNumber').value,
-                dob: document.getElementById('kDob').value,
-                status: "Pending"
-            }
-        });
-
-        document.getElementById('kycStatus').innerText = "Submitted / Under Review 🔍";
-        document.getElementById('kycStatus').style.color = "#38bdf8";
-        alert("KYC details submitted to database successfully!");
+        alert("KYC Submitted Successfully!");
     }
 
-    // Load Leaderboard from Firebase Database realtime
-    function loadLeaderboard() {
-        const list = document.getElementById('leaderboardList');
-        const usersRef = db.ref('users');
-        
-        usersRef.orderByChild('balance').limitToLast(50).on('value', (snapshot) => {
-            let html = '';
-            let users = [];
-            snapshot.forEach((childSnapshot) => {
-                users.push(childSnapshot.val());
-            });
-            // Reverse to show highest balance first
-            users.reverse();
-
-            if(users.length === 0) {
-                html = '<p style="text-align:center; color:#94a
+    updateUI();
+    document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+</script>
+</body>
+</html>
