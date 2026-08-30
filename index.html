@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$LDOGE Mini App</title>
+    <title>$LDOGE Mini App - Real Leaderboard</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <!-- TON Connect UI SDK CDN -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; }
@@ -39,7 +44,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center;" class="card">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 20px;">🐕</span>
-                <span style="font-weight: bold; font-size: 14px; color: #f59e0b;">LDOGE App</span>
+                <span style="font-weight: bold; font-size: 14px; color: #f59e0b;">$LDOGE App</span>
             </div>
             <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 4px 10px; border-radius: 8px; font-size: 11px; color: #f59e0b; font-weight: bold;">
                 🔥 Streak: <span id="streakDisplay">Day 1</span>
@@ -118,8 +123,8 @@
     <div id="tab-wallet" class="tab-content">
         <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👛 Wallet Connection</h2>
         <div class="card">
-            <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">TON Ecosystem Wallet</p>
-            <button onclick="connectTonWallet()" class="primary-btn" style="background: #0098ea; color: #fff;" id="tonBtn">Connect TON Wallet ⚡</button>
+            <p style="font-size: 13px; font-weight: bold; margin-bottom: 6px;">TON Ecosystem Wallet</p>
+            <div id="ton-connect-button" style="margin-top: 10px; display: flex; justify-content: center;"></div>
         </div>
         <div class="card">
             <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">Base Network Wallet</p>
@@ -141,12 +146,11 @@
         </div>
     </div>
 
-    <!-- TAB 6: RANKS -->
+    <!-- TAB 6: REAL LEADERBOARD -->
     <div id="tab-leaderboard" class="tab-content">
-        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🏆 Leaderboard</h2>
+        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🏆 Real Leaderboard (Top 50)</h2>
         <div id="leaderboardList">
-            <div class="rank-item"><span>#1 CryptoKing</span><span style="color: #f59e0b; font-weight: bold;">1,250 LDOGE</span></div>
-            <div class="rank-item"><span>#2 DogeArmy_99</span><span style="color: #f59e0b; font-weight: bold;">980 LDOGE</span></div>
+            <p style="text-align:center; color:#94a3b8; font-size:12px;">Loading real-time ranks from database...</p>
         </div>
     </div>
 
@@ -162,19 +166,66 @@
 
 </div>
 
+<!-- FIREBASE & APP LOGIC -->
 <script>
-    let balance = parseInt(localStorage.getItem('ldoge_balance')) || 10;
-    let streak = parseInt(localStorage.getItem('ldoge_streak')) || 1;
+    const firebaseConfig = {
+      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+      authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+      databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+      projectId: "cyrusprotocol-b3080",
+      storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+      messagingSenderId: "457843406848",
+      appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Unique User ID generation (Telegram ID support)
+    let userId = localStorage.getItem('ldoge_uid');
+    if (!userId) {
+        userId = "user_" + Math.floor(Math.random() * 90000 + 10000);
+        localStorage.setItem('ldoge_uid', userId);
+    }
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) {
+        userId = "tg_" + window.Telegram.WebApp.initDataUnsafe.user.id;
+    }
+
+    const userRef = db.ref('users/' + userId);
+
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: 'https://littledogecharity.online/tonconnect-manifest.json',
+        uiPreferences: { theme: 'DARK' }
+    });
+    tonConnectUI.uiOptions = { buttonRootId: 'ton-connect-button' };
+
+    let balance = 10;
+    let streak = 1;
     let timeLeft = 0;
     let timerInterval = null;
     const COIN_DURATION = 3 * 60 * 60;
 
+    // Sync user data from Firebase on load
+    userRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            balance = data.balance || 10;
+            streak = data.streak || 1;
+        } else {
+            userRef.set({ balance: 10, streak: 1, name: userId });
+        }
+        updateUI();
+    });
+
     function switchTab(tabId, btnElement) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        
         document.getElementById('tab-' + tabId).classList.add('active');
         btnElement.classList.add('active');
+        
+        if(tabId === 'leaderboard') {
+            loadRealLeaderboard();
+        }
     }
 
     function calculateReward(currentStreak) {
@@ -187,7 +238,7 @@
         document.getElementById('balanceDisplay').innerText = balance;
         document.getElementById('streakDisplay').innerText = 'Day ' + streak;
         document.getElementById('rewardDisplay').innerText = '+' + calculateReward(streak) + ' Coins';
-        localStorage.setItem('ldoge_balance', balance);
+        userRef.update({ balance: balance });
     }
 
     function formatTime(seconds) {
@@ -216,34 +267,95 @@
         }, 1000);
     }
 
+    function checkTasksOnLoad() {
+        for(let i = 1; i <= 3; i++) {
+            if(localStorage.getItem('task_' + i) === 'completed') {
+                const btn = document.getElementById('taskBtn' + i);
+                if(btn) {
+                    btn.innerText = "Completed ✅";
+                    btn.style.background = "#059669";
+                    btn.disabled = true;
+                }
+            }
+        }
+    }
+
     function completeTask(taskId, url) {
+        const btn = document.getElementById('taskBtn' + taskId);
+        if(localStorage.getItem('task_' + taskId) === 'completed') return;
+        
         window.open(url, '_blank');
         setTimeout(() => {
             balance += 15;
+            localStorage.setItem('task_' + taskId, 'completed');
+            btn.innerText = "Completed ✅";
+            btn.style.background = "#059669";
+            btn.disabled = true;
             updateUI();
             alert("Task completed! +15 Coins added.");
         }, 1500);
     }
 
     function copyRefLink() {
-        navigator.clipboard.writeText("https://t.me/Little_Doge_coin?start=ref_12345");
+        navigator.clipboard.writeText("https://t.me/Little_Doge_coin?start=" + userId);
         alert("Invite link copied!");
     }
 
-    function connectTonWallet() {
-        alert("TON Wallet Connected Successfully!");
-    }
-
     function saveBaseWallet() {
-        alert("Base Wallet Saved!");
+        const addr = document.getElementById('baseAddressInput').value;
+        if(addr.length < 10) { alert("Please enter a valid wallet address!"); return; }
+        userRef.update({ baseWallet: addr });
+        alert("Base Wallet Saved Successfully!");
     }
 
     function submitKyc() {
+        const name = document.getElementById('kName').value;
+        if(!name) { alert("Please enter your name!"); return; }
+        userRef.update({ 
+            name: name,
+            kyc: {
+                fatherName: document.getElementById('kFather').value,
+                country: document.getElementById('kCountry').value,
+                idNumber: document.getElementById('kIdNumber').value,
+                status: "Pending"
+            }
+        });
+        document.getElementById('kycStatus').innerText = "Status: Submitted / Under Review 🔍";
+        document.getElementById('kycStatus').style.color = "#38bdf8";
         alert("KYC Submitted Successfully!");
     }
 
-    updateUI();
+    // REAL LEADERBOARD FETCH FROM FIREBASE DATABASE
+    function loadRealLeaderboard() {
+        const list = document.getElementById('leaderboardList');
+        db.ref('users').orderByChild('balance').limitToLast(50).once('value', (snapshot) => {
+            let users = [];
+            snapshot.forEach((child) => {
+                users.push(child.val());
+            });
+            users.reverse(); // Highest balance first
+
+            let html = '';
+            if(users.length === 0) {
+                html = '<p style="text-align:center; color:#94a3b8; font-size:12px;">No players on leaderboard yet.</p>';
+            } else {
+                users.forEach((u, index) => {
+                    let displayName = u.name ? u.name.substring(0, 10) + '...' : 'Player_' + index;
+                    if(u.name && u.name.startsWith('tg_')) displayName = 'Telegram User';
+                    html += `<div class="rank-item">
+                        <span>#${index + 1} ${displayName}</span>
+                        <span style="color: #f59e0b; font-weight: bold;">${u.balance || 0} LDOGE</span>
+                    </div>`;
+                });
+            }
+            list.innerHTML = html;
+        });
+    }
+
+    checkTasksOnLoad();
     document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+    loadRealLeaderboard();
 </script>
 </body>
-</html>
+                    </html>
+    
