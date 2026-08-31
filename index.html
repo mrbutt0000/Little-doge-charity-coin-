@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🐶 Little Doge - LDOGE</title>
-
-    <!-- Firebase SDKs -->
+    <title>🐶 LDOGE Debug</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
     </script>
-
     <style>
-        /* ===== Same CSS as before (copy from previous message) ===== */
-        /* I'm compressing it here for brevity, but in your final code use full CSS */
+        /* Same CSS as before, but with debug log area */
         * {
             margin: 0;
             padding: 0;
@@ -21,57 +17,42 @@
             font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         body {
-            background: var(--tg-bg, #0b0e11);
-            color: var(--tg-text, #eaecef);
+            background: #0b0e11;
+            color: #eaecef;
             padding-bottom: 90px;
-            min-height: 100vh;
         }
-        :root {
-            --tg-bg: var(--tg-theme-bg-color, #0b0e11);
-            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #1e2329);
-            --tg-text: var(--tg-theme-text-color, #eaecef);
-            --tg-hint: var(--tg-theme-hint-color, #848e9c);
-            --tg-button: var(--tg-theme-button-color, #f0b90b);
-            --tg-button-text: var(--tg-theme-button-text-color, #0b0e11);
-            --tg-section-bg: var(--tg-theme-section-bg-color, #13181d);
-            --tg-section-header: var(--tg-theme-section-header-text-color, #f0b90b);
-        }
-        .app-header {
-            background: var(--tg-secondary-bg);
-            padding: 14px 18px;
+        .header {
+            background: #1e2329;
+            padding: 12px 18px;
             display: flex;
             align-items: center;
             gap: 14px;
-            border-bottom: 2px solid var(--tg-button);
+            border-bottom: 2px solid #f0b90b;
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(12px);
         }
-        .app-header .logo-wrap {
-            width: 46px;
-            height: 46px;
+        .header .logo {
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             background: #000;
-            border: 2px solid var(--tg-button);
+            border: 2px solid #f0b90b;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            flex-shrink: 0;
-            font-size: 28px;
+            font-size: 26px;
         }
-        .app-header h1 {
+        .header h1 {
             font-size: 20px;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--tg-button), #ffd700);
+            background: linear-gradient(135deg, #f0b90b, #ffd700);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .app-header .badge {
+        .header .tag {
             margin-left: auto;
-            background: var(--tg-button);
-            color: var(--tg-button-text);
+            background: #f0b90b;
+            color: #000;
             font-size: 10px;
             font-weight: 800;
             padding: 4px 12px;
@@ -82,13 +63,13 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--tg-secondary-bg);
+            background: #1e2329;
             display: flex;
             justify-content: space-around;
             padding: 6px 0 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid #2b3139;
             z-index: 200;
-            backdrop-filter: blur(16px);
+            overflow-x: auto;
         }
         .nav-item {
             display: flex;
@@ -96,90 +77,55 @@
             align-items: center;
             background: transparent;
             border: none;
-            color: var(--tg-hint);
-            font-size: 10px;
+            color: #848e9c;
+            font-size: 9px;
             gap: 2px;
-            padding: 4px 12px;
-            border-radius: 12px;
-            transition: 0.2s;
+            padding: 4px 8px;
             cursor: pointer;
             font-weight: 600;
+            flex-shrink: 0;
         }
         .nav-item .icon {
-            font-size: 22px;
-            line-height: 1.2;
+            font-size: 20px;
         }
         .nav-item.active {
-            color: var(--tg-button);
-        }
-        .nav-item .dot {
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
-            background: var(--tg-button);
-            display: none;
-            margin-top: 2px;
-        }
-        .nav-item.active .dot {
-            display: block;
+            color: #f0b90b;
         }
         .page {
             display: none;
             padding: 18px 16px;
-            animation: slideUp 0.35s ease;
         }
         .page.active {
             display: block;
         }
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
         .card {
-            background: var(--tg-secondary-bg);
+            background: #1e2329;
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid #2b3139;
         }
         .card-glow {
-            border: 1px solid var(--tg-button);
-            box-shadow: 0 0 40px rgba(240, 185, 11, 0.08);
+            border-color: #f0b90b;
         }
         .card-title {
             font-size: 15px;
             font-weight: 700;
-            color: var(--tg-section-header);
+            color: #f0b90b;
             margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         .glow-btn {
-            background: var(--tg-button);
-            color: var(--tg-button-text);
+            background: #f0b90b;
+            color: #000;
             border: none;
             font-weight: 800;
-            padding: 16px 20px;
+            padding: 16px;
             border-radius: 60px;
             font-size: 16px;
             width: 100%;
             cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 0 30px rgba(240, 185, 11, 0.2);
+            transition: 0.2s;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
         .glow-btn:active {
             transform: scale(0.96);
@@ -187,8 +133,6 @@
         }
         .glow-btn:disabled {
             opacity: 0.4;
-            transform: none;
-            box-shadow: none;
             cursor: not-allowed;
         }
         .glow-btn .spin {
@@ -200,14 +144,10 @@
                 transform: rotate(360deg);
             }
         }
-        .btn-success {
+        .btn-green {
             background: #3ddc84;
-            box-shadow: 0 0 30px rgba(61, 220, 132, 0.2);
-            color: #0b0e11;
-        }
-        .btn-success:disabled {
-            background: #2b3139;
-            color: var(--tg-hint);
+            box-shadow: 0 0 30px #3ddc8433;
+            color: #000;
         }
         .stat-grid {
             display: grid;
@@ -216,23 +156,19 @@
             margin-top: 14px;
         }
         .stat-box {
-            background: var(--tg-section-bg);
-            padding: 14px 6px;
-            border-radius: 16px;
+            background: #13181d;
+            padding: 12px 4px;
+            border-radius: 12px;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.04);
         }
         .stat-box .num {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
-            color: var(--tg-text);
-            line-height: 1.2;
         }
         .stat-box .label {
             font-size: 9px;
-            color: var(--tg-hint);
+            color: #848e9c;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             margin-top: 4px;
         }
         .level-badge {
@@ -241,179 +177,105 @@
             border-radius: 30px;
             font-size: 11px;
             font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border: 1px solid transparent;
-        }
-        .level-silver {
             background: #a0a0a0;
             color: #000;
         }
-        .level-bronze {
+        .level-badge.bronze {
             background: #cd7f32;
             color: #fff;
         }
-        .level-gold {
+        .level-badge.gold {
             background: #f0b90b;
             color: #000;
         }
-        .level-platinum {
+        .level-badge.platinum {
             background: #e5e4e2;
             color: #000;
         }
-        .level-diamond {
+        .level-badge.diamond {
             background: #b9f2ff;
             color: #000;
         }
-        .level-progress-wrap {
-            background: var(--tg-section-bg);
+        .progress-wrap {
+            background: #13181d;
             border-radius: 30px;
             height: 8px;
-            margin: 12px 0 8px;
+            margin: 12px 0 6px;
             overflow: hidden;
         }
-        .level-progress-bar {
+        .progress-bar {
             height: 100%;
-            background: linear-gradient(90deg, var(--tg-button), #ffd700);
-            border-radius: 30px;
+            background: linear-gradient(90deg, #f0b90b, #ffd700);
             width: 0%;
-            transition: width 0.6s ease;
+            transition: width 0.5s;
         }
         .task-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 12px 0;
+            border-bottom: 1px solid #2b3139;
         }
         .task-item:last-child {
             border-bottom: none;
         }
         .task-info h4 {
             font-size: 14px;
-            font-weight: 600;
         }
         .task-info p {
             font-size: 11px;
-            color: var(--tg-hint);
-            margin-top: 2px;
+            color: #848e9c;
         }
         .task-btn {
-            background: var(--tg-section-bg);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: var(--tg-text);
-            padding: 6px 18px;
+            background: #13181d;
+            border: none;
+            color: #eaecef;
+            padding: 6px 16px;
             border-radius: 30px;
-            font-size: 12px;
             font-weight: 700;
+            font-size: 12px;
             cursor: pointer;
-            transition: 0.15s;
-            white-space: nowrap;
-        }
-        .task-btn:active {
-            transform: scale(0.94);
         }
         .task-btn.done {
             background: #1f8b4c;
             color: #fff;
-            border-color: #1f8b4c;
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: default;
         }
-        .task-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .ref-link-box {
-            background: var(--tg-section-bg);
-            padding: 14px 16px;
-            border-radius: 16px;
+        .ref-box {
+            background: #13181d;
+            padding: 12px 16px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            word-break: break-all;
             font-size: 12px;
-            border: 1px dashed rgba(240, 185, 11, 0.3);
+            border: 1px dashed #f0b90b;
             margin-top: 10px;
-        }
-        .ref-link-box span {
-            flex: 1;
-            font-weight: 500;
-            color: var(--tg-hint);
+            word-break: break-all;
         }
         .copy-btn {
-            background: var(--tg-button);
+            background: #f0b90b;
             border: none;
-            padding: 6px 16px;
+            padding: 4px 14px;
             border-radius: 30px;
             font-weight: 700;
-            color: var(--tg-button-text);
+            color: #000;
             cursor: pointer;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-        .copy-btn:active {
-            transform: scale(0.94);
-        }
-        .ref-stats {
-            background: linear-gradient(145deg, rgba(240, 185, 11, 0.08), rgba(240, 185, 11, 0.02));
-            border: 1px solid rgba(240, 185, 11, 0.1);
-            border-radius: 16px;
-            padding: 16px;
-            margin: 14px 0;
         }
         .wallet-input {
-            background: var(--tg-section-bg);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 14px 16px;
+            background: #13181d;
+            border: 1px solid #2b3139;
+            border-radius: 12px;
+            padding: 14px;
             width: 100%;
-            color: var(--tg-text);
+            color: #fff;
             font-size: 14px;
             margin-bottom: 12px;
             outline: none;
-            transition: 0.2s;
         }
         .wallet-input:focus {
-            border-color: var(--tg-button);
-            box-shadow: 0 0 0 4px rgba(240, 185, 11, 0.1);
-        }
-        .wallet-warning {
-            background: rgba(255, 68, 68, 0.08);
-            border-left: 3px solid #ff4444;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 12px;
-            color: #ff6666;
-            margin-bottom: 14px;
-        }
-        .profile-avatar {
-            font-size: 56px;
-            text-align: center;
-            margin-bottom: 4px;
-        }
-        .profile-name {
-            font-size: 20px;
-            font-weight: 800;
-            text-align: center;
-        }
-        .profile-detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            font-size: 13px;
-        }
-        .profile-detail-row:last-child {
-            border-bottom: none;
-        }
-        .profile-detail-row .label {
-            color: var(--tg-hint);
-        }
-        .profile-detail-row .value {
-            font-weight: 600;
+            border-color: #f0b90b;
         }
         .flex-between {
             display: flex;
@@ -425,139 +287,842 @@
             margin-top: 8px;
         }
         .text-muted {
-            color: var(--tg-hint);
+            color: #848e9c;
             font-size: 12px;
         }
         .text-gold {
-            color: var(--tg-button);
+            color: #f0b90b;
         }
         .text-red {
             color: #ff4444;
         }
+        .missed-badge {
+            background: #ff444422;
+            color: #ff6666;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            border: 1px solid #ff444466;
+        }
+        .profile-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #2b3139;
+            font-size: 13px;
+        }
+        .profile-row:last-child {
+            border-bottom: none;
+        }
+        .profile-row .lbl {
+            color: #848e9c;
+        }
+        .wallet-warn {
+            background: #ff444422;
+            border-left: 3px solid #ff4444;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #ff6666;
+            margin-bottom: 14px;
+        }
         .text-center {
             text-align: center;
         }
-        .missed-badge {
-            background: rgba(255, 68, 68, 0.12);
-            color: #ff6666;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 68, 68, 0.15);
+        .big-num {
+            font-size: 36px;
+            font-weight: 900;
+        }
+        .debug-log {
+            background: #13181d;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #3ddc84;
+            margin-bottom: 12px;
+            border-left: 3px solid #f0b90b;
+            max-height: 100px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .debug-error {
+            color: #ff4444;
+            border-left-color: #ff4444;
+        }
+        .admin-user-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #2b3139;
+            font-size: 12px;
         }
         @media (max-width: 420px) {
             .stat-grid {
-                grid-template-columns: repeat(3, 1fr);
                 gap: 6px;
             }
             .stat-box .num {
                 font-size: 16px;
             }
-            .app-header h1 {
-                font-size: 17px;
+            .nav-item {
+                font-size: 8px;
+                padding: 4px 4px;
             }
-            .card {
-                padding: 16px;
+            .nav-item .icon {
+                font-size: 18px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- ===== HEADER ===== -->
-    <div class="app-header">
-        <div class="logo-wrap">
-            <!-- DEFAULT DOGE LOGO -->
-            <svg viewBox="0 0 100 100" style="width:40px; height:40px;">
-                <circle cx="50" cy="50" r="45" fill="#f0b90b" />
-                <circle cx="35" cy="40" r="10" fill="#fff" />
-                <circle cx="65" cy="40" r="10" fill="#fff" />
-                <circle cx="35" cy="40" r="5" fill="#000" />
-                <circle cx="65" cy="40" r="5" fill="#000" />
-                <ellipse cx="50" cy="60" rx="18" ry="10" fill="#fff" />
-                <path d="M30 65 Q50 80 70 65" stroke="#000" stroke-width="4" fill="none" />
-                <text x="50" y="92" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">DOGE</text>
-            </svg>
-        </div>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">🐶</div>
         <h1>$LDOGE</h1>
-        <span class="badge">⛏️ Mine</span>
+        <span class="tag">🔴 DEBUG</span>
     </div>
 
-    <!-- ===== PAGES ===== -->
+    <!-- DEBUG LOG (shows on every page) -->
+    <div style="padding: 10px 16px 0;">
+        <div id="debugLog" class="debug-log">⏳ Initializing...</div>
+    </div>
+
+    <!-- PAGES -->
     <div id="pageHome" class="page active">
         <div class="card card-glow">
             <div class="card-title">💰 Dashboard</div>
-            <div class="text-center" style="margin: 6px 0 8px;">
-                <div style="font-size: 38px; font-weight: 900; color: var(--tg-text); letter-spacing: -0.5px;" id="displayBalance">0.00</div>
-                <div style="font-size: 13px; color: var(--tg-hint); font-weight: 500;">$LDOGE Balance</div>
+            <div class="text-center">
+                <div class="big-num" id="displayBalance">0.00</div>
+                <div style="color:#848e9c; font-size:13px;">$LDOGE Balance</div>
             </div>
-            <button class="glow-btn" id="mineBtn">
-                <span class="spin">⛏️</span> Mine Now (5 Coins)
-            </button>
-            <div id="cooldownTimer" style="text-align:center; margin-top:12px; font-size:13px; color: var(--tg-hint); font-weight:500;">✅ Ready to mine!</div>
+            <button class="glow-btn" id="mineBtn"><span class="spin">⛏️</span> Mine Now (5 Coins)</button>
+            <div id="cooldownTimer" style="text-align:center; margin-top:12px; color:#848e9c; font-size:13px;">✅ Ready</div>
             <div class="stat-grid">
                 <div class="stat-box"><div class="num" id="statMined">0</div><div class="label">Mined</div></div>
                 <div class="stat-box"><div class="num" id="statLevel">Silver</div><div class="label">Level</div></div>
                 <div class="stat-box"><div class="num" id="statRefs">0</div><div class="label">Referrals</div></div>
             </div>
             <div class="flex-between mt-1">
-                <span id="levelTag" class="level-badge level-silver">Silver</span>
+                <span id="levelTag" class="level-badge">Silver</span>
                 <span id="missedDaysDisplay" class="missed-badge">🔥 0 days missed</span>
             </div>
-            <div class="level-progress-wrap"><div class="level-progress-bar" id="levelProgress" style="width:0%;"></div></div>
-            <div style="font-size:11px; color: var(--tg-hint); font-weight:500;" id="nextLevelText">Next: Bronze (1000 mined)</div>
+            <div class="progress-wrap"><div class="progress-bar" id="levelProgress"></div></div>
+            <div style="font-size:11px; color:#848e9c;" id="nextLevelText">Next: Bronze (1000 mined)</div>
         </div>
-        <div class="card" style="border: 1px solid rgba(61, 220, 132, 0.2);">
+        <div class="card" style="border-color:#3ddc8444;">
             <div class="card-title">🎁 Welcome Bonus</div>
             <p class="text-muted" id="welcomeBonusMsg">Claim your 20 $LDOGE welcome bonus!</p>
-            <button class="glow-btn btn-success" id="claimWelcomeBtn" style="margin-top:12px;">🎁 Claim 20 Coins</button>
+            <button class="glow-btn btn-green" id="claimWelcomeBtn" style="margin-top:12px;">🎁 Claim 20 Coins</button>
         </div>
     </div>
 
     <div id="pageTasks" class="page">
         <div class="card">
-            <div class="card-title">📋 Task Center</div>
-            <p class="text-muted" style="margin-bottom:16px;">Complete each task once to earn <strong>5 $LDOGE</strong> per task.</p>
+            <div class="card-title">📋 Tasks</div>
+            <p class="text-muted" style="margin-bottom:16px;">Complete each task once for <strong>5 $LDOGE</strong>.</p>
             <div id="taskList"></div>
         </div>
     </div>
 
     <div id="pageReferral" class="page">
         <div class="card card-glow">
-            <div class="card-title">👥 Invite & Earn</div>
-            <p class="text-muted">Get <strong>10%</strong> of your friend's mining & <strong>10 coins</strong> per invite. (Max 50% cap)</p>
-            <div class="ref-stats">
-                <div class="stat-grid" style="margin-top:0;">
-                    <div class="stat-box" style="background:transparent; border:none; padding:4px;"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
-                    <div class="stat-box" style="background:transparent; border:none; padding:4px;"><div class="num" id="refEarnings">0.00</div><div class="label">Earned (10%)</div></div>
-                    <div class="stat-box" style="background:transparent; border:none; padding:4px;"><div class="num" id="refCap">0%</div><div class="label">Cap Usage</div></div>
-                </div>
+            <div class="card-title">👥 Invite</div>
+            <p class="text-muted">10% of friend's mining + 10 coins per invite (50% cap)</p>
+            <div class="stat-grid" style="margin-top:14px;">
+                <div class="stat-box"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
+                <div class="stat-box"><div class="num" id="refEarnings">0.00</div><div class="label">Earned</div></div>
+                <div class="stat-box"><div class="num" id="refCap">0%</div><div class="label">Cap</div></div>
             </div>
-            <div class="ref-link-box">
+            <div class="ref-box">
                 <span id="refLinkDisplay">Loading...</span>
                 <button class="copy-btn" id="copyRefBtn">Copy</button>
             </div>
-            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px; background: #1a8cd8; box-shadow:0 0 30px #1a8cd866;">📤 Share with Friends</button>
+            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px; background:#1a8cd8; box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
         </div>
         <div class="card">
-            <div class="card-title">👫 Your Referrals</div>
+            <div class="card-title">👫 Friends</div>
             <div id="referralListContainer"><p class="text-muted">No referrals yet.</p></div>
         </div>
     </div>
 
     <div id="pageWallet" class="page">
         <div class="card">
-            <div class="card-title">💳 Wallet Setup</div>
-            <div class="wallet-warning">⚠️ <strong>Exchange wallets (Binance, Coinbase, etc.) are NOT allowed.</strong><br>Only personal wallets like Phantom, Solflare, MetaMask, Trust Wallet are accepted.</div>
-            <label style="font-size:13px; font-weight:600; color: var(--tg-text); display:block; margin-bottom:6px;">🟣 Solana (Phantom, Solflare)</label>
-            <input type="text" class="wallet-input" id="walletSolana" placeholder="e.g. 8x...xyz (Base58)">
-            <label style="font-size:13px; font-weight:600; color: var(--tg-text); display:block; margin-bottom:6px; margin-top:4px;">🔵 Base / EVM (MetaMask, Coinbase Wallet)</label>
-            <input type="text" class="wallet-input" id="walletBase" placeholder="e.g. 0x... (40 hex chars)">
-            <button class="glow-btn" id="saveWalletBtn" style="background: var(--tg-section-bg); color: var(--tg-text); box-shadow:none; border:1px solid rgba(255,255,255,0.06); margin-top:6px;">💾 Save Wallets</button>
-            <div id="walletStatus" style="margin-top:12px; font-size:13px; font-weight:500; color: var(--tg-hint);"></div>
+            <div class="card-title">💳 Wallet</div>
+            <div class="wallet-warn">⚠️ Only personal wallets allowed (No exchanges).</div>
+            <label style="font-size:13px; font-weight:600;">🟣 Solana</label>
+            <input type="text" class="wallet-input" id="walletSolana" placeholder="Base58 address">
+            <label style="font-size:13px; font-weight:600; margin-top:6px;">🔵 Base / EVM</label>
+            <input type="text" class="wallet-input" id="walletBase" placeholder="0x...">
+            <button class="glow-btn" id="saveWalletBtn" style="background:#2b3139; box-shadow:none;">💾 Save</button>
+            <div id="walletStatus" style="margin-top:12px; color:#848e9c;"></div>
         </div>
     </div>
 
     <div id="pageProfile" class="page">
-        <div class="card" style
+        <div class="card" style="text-align:center;">
+            <div style="font-size:56px;">🐶</div>
+            <h2 id="profileName">User</h2>
+            <span id="profileLevelTag" class="level-badge">Silver</span>
+            <div style="margin-top:16px; background:#13181d; padding:16px; border-radius:16px; text-align:left;">
+                <div class="profile-row"><span class="lbl">ID</span><span id="profileTgId">-</span></div>
+                <div class="profile-row"><span class="lbl">Mined</span><span id="profileMined">0</span></div>
+                <div class="profile-row"><span class="lbl">Balance</span><span class="text-gold" id="profileBalance">0</span></div>
+                <div class="profile-row"><span class="lbl">Burned</span><span class="text-red" id="profileBurned">0</span></div>
+                <div class="profile-row"><span class="lbl">Missed Days</span><span id="profileMissed">0</span></div>
+                <div class="profile-row"><span class="lbl">Referrals</span><span id="profileRefs">0</span></div>
+                <div class="profile-row" style="border:none;"><span class="lbl">Level</span><span id="profileLevel">Silver</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="pageAdmin" class="page">
+        <div class="card card-glow">
+            <div class="card-title">📊 Admin (Global Stats)</div>
+            <div class="stat-grid">
+                <div class="stat-box"><div class="num" id="adminTotalUsers">0</div><div class="label">Users</div></div>
+                <div class="stat-box"><div class="num" id="adminTotalMined">0</div><div class="label">Mined</div></div>
+                <div class="stat-box"><div class="num" id="adminTotalBalance">0</div><div class="label">Balance</div></div>
+            </div>
+            <button class="glow-btn" id="refreshAdminBtn" style="background:#2b3139; box-shadow:none;">🔄 Refresh</button>
+            <div style="margin-top:16px; max-height:350px; overflow-y:auto;" id="adminUserList"><p class="text-muted">Loading...</p></div>
+        </div>
+    </div>
+
+    <!-- NAV -->
+    <div class="bottom-nav">
+        <button class="nav-item active" data-page="pageHome"><span class="icon">🏠</span> Home</button>
+        <button class="nav-item" data-page="pageTasks"><span class="icon">📋</span> Tasks</button>
+        <button class="nav-item" data-page="pageReferral"><span class="icon">👥</span> Refer</button>
+        <button class="nav-item" data-page="pageWallet"><span class="icon">💳</span> Wallet</button>
+        <button class="nav-item" data-page="pageProfile"><span class="icon">👤</span> Profile</button>
+        <button class="nav-item" data-page="pageAdmin"><span class="icon">📊</span> Admin</button>
+    </div>
+
+    <script>
+        // ============================================================
+        //  🔥 FIREBASE
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+            authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+            databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+            projectId: "cyrusprotocol-b3080",
+            storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+            messagingSenderId: "457843406848",
+            appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+        };
+
+        let db = null;
+        let fbError = null;
+        try {
+            const app = firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            logMsg("✅ Firebase connected!", false);
+        } catch (e) {
+            fbError = e.message;
+            logMsg("❌ Firebase init failed: " + e.message, true);
+            console.error(e);
+        }
+
+        // ============================================================
+        //  📱 TELEGRAM
+        // ============================================================
+        const tg = window.Telegram?.WebApp;
+        let tgUser = null;
+        let startParam = null;
+        if (tg) {
+            tg.expand();
+            tgUser = tg.initDataUnsafe?.user;
+            startParam = tg.initDataUnsafe?.start_param;
+        }
+        if (!tgUser) {
+            tgUser = { id: 123456789, first_name: "Debug", username: "debug" };
+            logMsg("⚠️ Browser mode (test user)", false);
+        }
+        const userId = tgUser.id.toString();
+        const userRef = db ? db.ref('users/' + userId) : null;
+        const allUsersRef = db ? db.ref('users') : null;
+
+        // ============================================================
+        //  🖥️ DEBUG LOG
+        // ============================================================
+        function logMsg(msg, isError = false) {
+            const el = document.getElementById('debugLog');
+            if (!el) return;
+            const time = new Date().toLocaleTimeString();
+            const line = `[${time}] ${msg}`;
+            el.innerText = line;
+            if (isError) {
+                el.classList.add('debug-error');
+                el.style.color = '#ff4444';
+            } else {
+                el.classList.remove('debug-error');
+                el.style.color = '#3ddc84';
+            }
+            console.log(line);
+        }
+
+        // ============================================================
+        //  🧠 APP STATE
+        // ============================================================
+        let userData = null;
+        const COOLDOWN_MS = 3 * 60 * 60 * 1000;
+
+        // ============================================================
+        //  🎯 DOM REFS
+        // ============================================================
+        const $ = id => document.getElementById(id);
+        const mineBtn = $('mineBtn');
+        const cooldownTimer = $('cooldownTimer');
+        const displayBalance = $('displayBalance');
+        const statMined = $('statMined');
+        const statLevel = $('statLevel');
+        const statRefs = $('statRefs');
+        const levelTag = $('levelTag');
+        const missedDaysDisplay = $('missedDaysDisplay');
+        const levelProgress = $('levelProgress');
+        const nextLevelText = $('nextLevelText');
+        const welcomeBonusMsg = $('welcomeBonusMsg');
+        const claimWelcomeBtn = $('claimWelcomeBtn');
+        const taskList = $('taskList');
+        const refLinkDisplay = $('refLinkDisplay');
+        const copyRefBtn = $('copyRefBtn');
+        const shareRefBtn = $('shareRefBtn');
+        const refCount = $('refCount');
+        const refEarnings = $('refEarnings');
+        const refCap = $('refCap');
+        const referralListContainer = $('referralListContainer');
+        const walletSolana = $('walletSolana');
+        const walletBase = $('walletBase');
+        const saveWalletBtn = $('saveWalletBtn');
+        const walletStatus = $('walletStatus');
+        const profileName = $('profileName');
+        const profileLevelTag = $('profileLevelTag');
+        const profileTgId = $('profileTgId');
+        const profileMined = $('profileMined');
+        const profileBalance = $('profileBalance');
+        const profileBurned = $('profileBurned');
+        const profileMissed = $('profileMissed');
+        const profileRefs = $('profileRefs');
+        const profileLevel = $('profileLevel');
+        const adminTotalUsers = $('adminTotalUsers');
+        const adminTotalMined = $('adminTotalMined');
+        const adminTotalBalance = $('adminTotalBalance');
+        const adminUserList = $('adminUserList');
+        const refreshAdminBtn = $('refreshAdminBtn');
+
+        // ============================================================
+        //  📈 LEVEL
+        // ============================================================
+        function getLevel(mined) {
+            if (mined >= 100000) return { name: 'Diamond', key: 'diamond' };
+            if (mined >= 25000) return { name: 'Platinum', key: 'platinum' };
+            if (mined >= 5000) return { name: 'Gold', key: 'gold' };
+            if (mined >= 1000) return { name: 'Bronze', key: 'bronze' };
+            return { name: 'Silver', key: 'silver' };
+        }
+
+        function getNextLevel(mined) {
+            const levels = [{ threshold: 1000, name: 'Bronze' }, { threshold: 5000, name: 'Gold' }, { threshold: 25000,
+                    name: 'Platinum' }, { threshold: 100000, name: 'Diamond' }];
+            for (let lv of levels) {
+                if (mined < lv.threshold) return lv;
+            }
+            return null;
+        }
+
+        function getProgress(mined) {
+            const lv = getLevel(mined);
+            const next = getNextLevel(mined);
+            if (!next) return 100;
+            const prev = lv.key === 'silver' ? 0 : lv.key === 'bronze' ? 1000 : lv.key === 'gold' ? 5000 : lv.key ===
+                'platinum' ? 25000 : 0;
+            const range = next.threshold - prev;
+            if (range <= 0) return 100;
+            return Math.min(((mined - prev) / range) * 100, 100);
+        }
+
+        // ============================================================
+        //  🖌️ UPDATE UI
+        // ============================================================
+        function updateUI() {
+            if (!userData) {
+                logMsg("⚠️ No user data to display", true);
+                return;
+            }
+            const d = userData;
+            const balance = d.balance || 0;
+            const mined = d.minedCoins || 0;
+            const levelObj = getLevel(mined);
+            const next = getNextLevel(mined);
+
+            displayBalance.innerText = balance.toFixed(2);
+            statMined.innerText = mined;
+            statLevel.innerText = levelObj.name;
+            statRefs.innerText = d.referralCount || 0;
+
+            levelTag.innerText = levelObj.name;
+            levelTag.className = `level-badge ${levelObj.key !== 'silver' ? levelObj.key : ''}`;
+            missedDaysDisplay.innerText = `🔥 ${d.missedDays || 0} days missed`;
+
+            const prog = getProgress(mined);
+            levelProgress.style.width = prog + '%';
+            if (next) nextLevelText.innerText = `Next: ${next.name} (${next.threshold} mined)`;
+            else nextLevelText.innerText = '🏆 Max Level!';
+
+            if (d.hasClaimedWelcome) {
+                claimWelcomeBtn.disabled = true;
+                claimWelcomeBtn.innerText = '✅ Claimed';
+                welcomeBonusMsg.innerText = 'Welcome bonus claimed!';
+            } else {
+                claimWelcomeBtn.disabled = false;
+                claimWelcomeBtn.innerText = '🎁 Claim 20 Coins';
+                welcomeBonusMsg.innerText = 'Claim your 20 $LDOGE welcome bonus!';
+            }
+
+            refCount.innerText = d.referralCount || 0;
+            refEarnings.innerText = (d.referralEarnings || 0).toFixed(2);
+            const cap = Math.min(100, ((d.referralEarnings || 0) / (d.minedCoins * 0.5 || 1)) * 100);
+            refCap.innerText = Math.min(cap, 100).toFixed(0) + '%';
+
+            profileName.innerText = tgUser.first_name || 'User';
+            profileLevelTag.innerText = levelObj.name;
+            profileLevelTag.className = `level-badge ${levelObj.key !== 'silver' ? levelObj.key : ''}`;
+            profileTgId.innerText = userId;
+            profileMined.innerText = mined;
+            profileBalance.innerText = balance.toFixed(2);
+            profileBurned.innerText = d.totalBurned || 0;
+            profileMissed.innerText = d.missedDays || 0;
+            profileRefs.innerText = d.referralCount || 0;
+            profileLevel.innerText = levelObj.name;
+
+            checkCooldown();
+            renderTasks();
+            loadWalletData();
+            loadReferralList();
+            logMsg("✅ UI updated", false);
+        }
+
+        // ============================================================
+        //  ⏳ COOLDOWN
+        // ============================================================
+        function checkCooldown() {
+            if (!userData) return;
+            const last = userData.lastClaimTime || 0;
+            const diff = Date.now() - last;
+            if (diff >= COOLDOWN_MS) {
+                mineBtn.disabled = false;
+                cooldownTimer.innerText = '✅ Ready to mine!';
+            } else {
+                mineBtn.disabled = true;
+                const remaining = COOLDOWN_MS - diff;
+                const h = Math.floor(remaining / 3600000);
+                const m = Math.floor((remaining % 3600000) / 60000);
+                const s = Math.floor((remaining % 60000) / 1000);
+                cooldownTimer.innerText = `⏳ Next mine in ${h}h ${m}m ${s}s`;
+                setTimeout(checkCooldown, 1000);
+            }
+        }
+
+        // ============================================================
+        //  🔥 BURN
+        // ============================================================
+        function checkBurn() {
+            if (!userData) return;
+            const today = new Date().toISOString().split('T')[0];
+            const lastLogin = userData.lastLoginDate || today;
+            if (lastLogin !== today) {
+                const diff = Math.floor((new Date(today) - new Date(lastLogin)) / 86400000);
+                if (diff > 0) {
+                    const burnAmount = diff * 10;
+                    const actualBurn = Math.min(burnAmount, userData.balance || 0);
+                    userData.balance = (userData.balance || 0) - actualBurn;
+                    userData.totalBurned = (userData.totalBurned || 0) + actualBurn;
+                    userData.missedDays = (userData.missedDays || 0) + diff;
+                    userData.lastLoginDate = today;
+                    saveUserData();
+                    logMsg(`🔥 Burned ${actualBurn} coins for ${diff} days`, false);
+                } else {
+                    userData.lastLoginDate = today;
+                    saveUserData();
+                }
+            }
+        }
+
+        // ============================================================
+        //  💾 SAVE / LOAD
+        // ============================================================
+        function saveUserData() {
+            if (!userData || !userRef) {
+                logMsg("❌ Cannot save - no userRef", true);
+                return;
+            }
+            userRef.set(userData).then(() => {
+                logMsg("✅ Data saved to Firebase", false);
+            }).catch(e => {
+                logMsg("❌ Save error: " + e.message, true);
+            });
+        }
+
+        function loadUserData() {
+            if (!userRef) {
+                logMsg("❌ userRef null - Firebase not ready", true);
+                return;
+            }
+            logMsg("⏳ Loading user data...", false);
+            userRef.once('value').then(snap => {
+                const data = snap.val();
+                if (!data) {
+                    logMsg("🆕 New user detected", false);
+                    const newUser = {
+                        firstName: tgUser.first_name || 'User',
+                        username: tgUser.username || '',
+                        createdAt: Date.now(),
+                        balance: 0,
+                        minedCoins: 0,
+                        totalBurned: 0,
+                        referralEarnings: 0,
+                        referralCount: 0,
+                        referralList: [],
+                        referredBy: null,
+                        lastClaimTime: 0,
+                        lastLoginDate: new Date().toISOString().split('T')[0],
+                        missedDays: 0,
+                        tasks: {},
+                        walletSolana: '',
+                        walletBase: '',
+                        hasClaimedWelcome: false
+                    };
+                    if (startParam && startParam.startsWith('ref_')) {
+                        const refId = startParam.replace('ref_', '');
+                        if (refId !== userId) {
+                            newUser.referredBy = refId;
+                            const refRef = db.ref('users/' + refId);
+                            refRef.once('value').then(s => {
+                                const rd = s.val();
+                                if (rd) {
+                                    const list = rd.referralList || [];
+                                    if (!list.includes(userId)) {
+                                        list.push(userId);
+                                        const count = (rd.referralCount || 0) + 1;
+                                        const bal = (rd.balance || 0) + 10;
+                                        refRef.update({ referralList: list, referralCount: count,
+                                            balance: bal });
+                                        logMsg(`✅ Referral credited to ${refId}`, false);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    userData = newUser;
+                    userRef.set(newUser);
+                    updateUI();
+                    checkBurn();
+                    logMsg("✅ New user created", false);
+                } else {
+                    userData = data;
+                    // Ensure fields
+                    let changed = false;
+                    if (userData.hasClaimedWelcome === undefined) { userData.hasClaimedWelcome = false;
+                        changed = true; }
+                    if (userData.tasks === undefined) { userData.tasks = {};
+                        changed = true; }
+                    if (userData.referralList === undefined) { userData.referralList = [];
+                        changed = true; }
+                    if (userData.totalBurned === undefined) { userData.totalBurned = 0;
+                        changed = true; }
+                    if (userData.missedDays === undefined) { userData.missedDays = 0;
+                        changed = true; }
+                    if (userData.walletSolana === undefined) { userData.walletSolana = '';
+                        changed = true; }
+                    if (userData.walletBase === undefined) { userData.walletBase = '';
+                        changed = true; }
+                    if (changed) { userRef.update(userData);
+                        logMsg("⚠️ Missing fields added", false); }
+                    updateUI();
+                    checkBurn();
+                    logMsg("✅ Existing user loaded", false);
+                }
+            }).catch(e => {
+                const msg = "❌ Firebase read error: " + e.message + " (Check Authorized Domains)";
+                logMsg(msg, true);
+                alert(msg);
+            });
+        }
+
+        // ============================================================
+        //  ⛏️ MINE
+        // ============================================================
+        function mineCoins() {
+            logMsg("⛏️ Mine button clicked!", false);
+            if (!userData) { logMsg("❌ No user data", true); return; }
+            const now = Date.now();
+            if (now - (userData.lastClaimTime || 0) < COOLDOWN_MS) {
+                cooldownTimer.innerText = '⏳ Wait!';
+                logMsg("⏳ Cooldown active", false);
+                return;
+            }
+            const reward = 5;
+            userData.balance = (userData.balance || 0) + reward;
+            userData.minedCoins = (userData.minedCoins || 0) + reward;
+            userData.lastClaimTime = now;
+            logMsg(`⛏️ Mined ${reward} coins`, false);
+
+            // Referral
+            if (userData.referredBy) {
+                const refId = userData.referredBy;
+                const refRef = db.ref('users/' + refId);
+                refRef.once('value').then(s => {
+                    const rd = s.val();
+                    if (rd) {
+                        const bonus = reward * 0.10;
+                        let earn = (rd.referralEarnings || 0) + bonus;
+                        const cap = (rd.minedCoins || 0) * 0.5;
+                        if (earn > cap) earn = cap;
+                        const actual = earn - (rd.referralEarnings || 0);
+                        if (actual > 0) {
+                            rd.balance = (rd.balance || 0) + actual;
+                            rd.referralEarnings = earn;
+                            refRef.update({ balance: rd.balance, referralEarnings: earn });
+                            logMsg(`✅ Referral bonus ${actual} to ${refId}`, false);
+                        }
+                    }
+                });
+            }
+
+            saveUserData();
+            updateUI();
+            cooldownTimer.innerText = '✅ Mined 5 Coins!';
+            mineBtn.disabled = true;
+            setTimeout(checkCooldown, 1000);
+        }
+
+        // ============================================================
+        //  🎁 WELCOME
+        // ============================================================
+        function claimWelcome() {
+            logMsg("🎁 Welcome button clicked", false);
+            if (!userData || userData.hasClaimedWelcome) {
+                logMsg("⚠️ Already claimed or no data", true);
+                return;
+            }
+            userData.balance = (userData.balance || 0) + 20;
+            userData.hasClaimedWelcome = true;
+            saveUserData();
+            updateUI();
+            logMsg("✅ Welcome bonus claimed!", false);
+        }
+
+        // ============================================================
+        //  📋 TASKS
+        // ============================================================
+        const TASKS = [
+            { id: 't1', label: 'Join Telegram', desc: '@LittleDogeOfficial' },
+            { id: 't2', label: 'Follow Twitter', desc: '@LittleDoge_X' },
+            { id: 't3', label: 'Visit Website', desc: 'littledoge.io' },
+            { id: 't4', label: 'Share Post', desc: 'Share pinned tweet' },
+            { id: 't5', label: 'Watch Video', desc: 'YouTube Intro' }
+        ];
+
+        function renderTasks() {
+            if (!userData) return;
+            let html = '';
+            const done = userData.tasks || {};
+            TASKS.forEach(t => {
+                const isDone = done[t.id] === true;
+                html += `<div class="task-item">
+                    <div class="task-info"><h4>${t.label}</h4><p>${t.desc}</p></div>
+                    <button class="task-btn ${isDone?'done':''}" data-task="${t.id}" ${isDone?'disabled':''}>${isDone?'✅ Done':'+5 Coins'}</button>
+                </div>`;
+            });
+            taskList.innerHTML = html;
+            document.querySelectorAll('.task-btn:not([disabled])').forEach(b => {
+                b.onclick = () => completeTask(b.dataset.task);
+            });
+        }
+
+        function completeTask(id) {
+            logMsg("📋 Task clicked: " + id, false);
+            if (!userData || (userData.tasks && userData.tasks[id])) {
+                logMsg("⚠️ Task already done", true);
+                return;
+            }
+            userData.balance = (userData.balance || 0) + 5;
+            if (!userData.tasks) userData.tasks = {};
+            userData.tasks[id] = true;
+            saveUserData();
+            updateUI();
+            logMsg("✅ Task completed! +5 coins", false);
+        }
+
+        // ============================================================
+        //  👥 REFERRAL
+        // ============================================================
+        function getRefLink() {
+            const bot = "LittleDogeBot"; // APNA BOT USERNAME
+            return `https://t.me/${bot}?start=ref_${userId}`;
+        }
+
+        function initReferral() {
+            const link = getRefLink();
+            refLinkDisplay.innerText = link;
+            copyRefBtn.onclick = () => {
+                navigator.clipboard.writeText(link);
+                copyRefBtn.innerText = '✅';
+                setTimeout(() => copyRefBtn.innerText = 'Copy', 2000);
+                logMsg("📋 Referral link copied", false);
+            };
+            shareRefBtn.onclick = () => {
+                if (tg) tg.openTelegramLink(link);
+                else window.open(link);
+                logMsg("📤 Share link opened", false);
+            };
+        }
+
+        function loadReferralList() {
+            if (!userData) return;
+            const list = userData.referralList || [];
+            if (list.length === 0) { referralListContainer.innerHTML = '<p class="text-muted">No referrals.</p>'; return; }
+            let html = '';
+            list.forEach(id => {
+                db.ref('users/' + id).once('value').then(s => {
+                    const d = s.val();
+                    if (d) html +=
+                        `<div class="flex-between" style="padding:6px 0;border-bottom:1px solid #2b3139;"><span>${d.firstName||id}</span><span class="text-muted">⛏️ ${d.minedCoins||0}</span></div>`;
+                    referralListContainer.innerHTML = html || '<p class="text-muted">Loading...</p>';
+                });
+            });
+            if (list.length > 0) referralListContainer.innerHTML = '<p class="text-muted">Loading...</p>';
+        }
+
+        // ============================================================
+        //  💳 WALLET
+        // ============================================================
+        function saveWallet() {
+            logMsg("💳 Save wallet clicked", false);
+            const sol = walletSolana.value.trim();
+            const base = walletBase.value.trim();
+            if (sol && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(sol)) {
+                walletStatus.innerText = '❌ Invalid Solana';
+                walletStatus.style.color = '#ff4444';
+                logMsg("❌ Invalid Solana address", true);
+                return;
+            }
+            if (base && !/^0x[a-fA-F0-9]{40}$/.test(base)) {
+                walletStatus.innerText = '❌ Invalid Base (0x...)';
+                walletStatus.style.color = '#ff4444';
+                logMsg("❌ Invalid Base address", true);
+                return;
+            }
+            if ((sol || base) && !confirm('⚠️ Only personal wallets allowed?')) {
+                logMsg("⚠️ Wallet save cancelled", false);
+                return;
+            }
+            userData.walletSolana = sol;
+            userData.walletBase = base;
+            saveUserData();
+            walletStatus.innerText = '✅ Saved!';
+            walletStatus.style.color = '#3ddc84';
+            logMsg("✅ Wallet saved", false);
+        }
+
+        function loadWalletData() {
+            if (!userData) return;
+            walletSolana.value = userData.walletSolana || '';
+            walletBase.value = userData.walletBase || '';
+            walletStatus.innerText = (userData.walletSolana || userData.walletBase) ? '✅ Set' : '⚡ Empty';
+            walletStatus.style.color = (userData.walletSolana || userData.walletBase) ? '#3ddc84' : '#848e9c';
+        }
+
+        // ============================================================
+        //  📊 ADMIN
+        // ============================================================
+        function loadAdminStats() {
+            if (!allUsersRef) {
+                logMsg("❌ Admin: Firebase not ready", true);
+                return;
+            }
+            logMsg("📊 Loading admin stats...", false);
+            adminUserList.innerHTML = '<p class="text-muted">Loading...</p>';
+            allUsersRef.once('value').then(snap => {
+                const data = snap.val();
+                if (!data) {
+                    adminTotalUsers.innerText = '0';
+                    adminTotalMined.innerText = '0';
+                    adminTotalBalance.innerText = '0';
+                    adminUserList.innerHTML = '<p class="text-muted">No users</p>';
+                    logMsg("📊 Admin: 0 users", false);
+                    return;
+                }
+                const keys = Object.keys(data);
+                let totalMined = 0,
+                    totalBalance = 0;
+                let html =
+                    '<div style="font-weight:700;padding:6px 0;border-bottom:2px solid #f0b90b;display:flex;justify-content:space-between;"><span>User</span><span>Mined | Balance</span></div>';
+                keys.forEach(id => {
+                    const u = data[id];
+                    const mined = u.minedCoins || 0;
+                    const bal = u.balance || 0;
+                    totalMined += mined;
+                    totalBalance += bal;
+                    const name = u.firstName || id.slice(0, 6);
+                    html +=
+                        `<div class="admin-user-item"><span>🐶 ${name} <span style="color:#848e9c;font-size:10px;">(${id.slice(0,8)}..)</span></span><span>${mined} | ${bal.toFixed(2)}</span></div>`;
+                });
+                adminTotalUsers.innerText = keys.length;
+                adminTotalMined.innerText = totalMined;
+                adminTotalBalance.innerText = totalBalance.toFixed(2);
+                adminUserList.innerHTML = html;
+                logMsg(`📊 Admin loaded: ${keys.length} users`, false);
+            }).catch(e => {
+                const msg = "❌ Admin error: " + e.message + " (Check Rules & Domain)";
+                logMsg(msg, true);
+                adminUserList.innerHTML = `<p class="text-red">${msg}</p>`;
+            });
+        }
+
+        // ============================================================
+        //  🧭 NAVIGATION
+        // ============================================================
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.onclick = function() {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const pageId = this.dataset.page;
+                document.getElementById(pageId).classList.add('active');
+                if (pageId === 'pageAdmin') loadAdminStats();
+                logMsg(`📱 Navigated to ${pageId}`, false);
+            };
+        });
+
+        // ============================================================
+        //  🎯 EVENT LISTENERS
+        // ============================================================
+        mineBtn.onclick = mineCoins;
+        claimWelcomeBtn.onclick = claimWelcome;
+        saveWalletBtn.onclick = saveWallet;
+        refreshAdminBtn.onclick = loadAdminStats;
+
+        // ============================================================
+        //  🚀 START
+        // ============================================================
+        if (db) {
+            loadUserData();
+            initReferral();
+            // Auto refresh admin every 30s if admin page visible
+            setInterval(() => {
+                if (document.getElementById('pageAdmin').classList.contains('active')) loadAdminStats();
+            }, 30000);
+            logMsg("✅ App started with Firebase", false);
+        } else {
+            logMsg("❌ Firebase not initialized. Check config & domain.", true);
+            alert("Firebase initialization failed. Please add your hosting domain to Firebase Authorized Domains.");
+        }
+
+        console.log("🐶 LDOGE Debug Version Loaded");
+    </script>
+</body>
+</html>
