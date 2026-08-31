@@ -2,138 +2,562 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$LDOGE - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐶 Little Doge - LDOGE</title>
+
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
+    </script>
+
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #0b0f19; color: #ffffff; padding: 16px; max-width: 480px; margin: 0 auto; }
-        .card { background: #131c31; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .coin-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0f19; font-weight: 900; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(245,158,11,0.4); }
-        .coin-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+        /* ===== Same CSS as before (copy from previous message) ===== */
+        /* I'm compressing it here for brevity, but in your final code use full CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: var(--tg-bg, #0b0e11);
+            color: var(--tg-text, #eaecef);
+            padding-bottom: 90px;
+            min-height: 100vh;
+        }
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #0b0e11);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #1e2329);
+            --tg-text: var(--tg-theme-text-color, #eaecef);
+            --tg-hint: var(--tg-theme-hint-color, #848e9c);
+            --tg-button: var(--tg-theme-button-color, #f0b90b);
+            --tg-button-text: var(--tg-theme-button-text-color, #0b0e11);
+            --tg-section-bg: var(--tg-theme-section-bg-color, #13181d);
+            --tg-section-header: var(--tg-theme-section-header-text-color, #f0b90b);
+        }
+        .app-header {
+            background: var(--tg-secondary-bg);
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border-bottom: 2px solid var(--tg-button);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+        .app-header .logo-wrap {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: #000;
+            border: 2px solid var(--tg-button);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            font-size: 28px;
+        }
+        .app-header h1 {
+            font-size: 20px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--tg-button), #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .app-header .badge {
+            margin-left: auto;
+            background: var(--tg-button);
+            color: var(--tg-button-text);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--tg-secondary-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 200;
+            backdrop-filter: blur(16px);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: transparent;
+            border: none;
+            color: var(--tg-hint);
+            font-size: 10px;
+            gap: 2px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            transition: 0.2s;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .nav-item .icon {
+            font-size: 22px;
+            line-height: 1.2;
+        }
+        .nav-item.active {
+            color: var(--tg-button);
+        }
+        .nav-item .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--tg-button);
+            display: none;
+            margin-top: 2px;
+        }
+        .nav-item.active .dot {
+            display: block;
+        }
+        .page {
+            display: none;
+            padding: 18px 16px;
+            animation: slideUp 0.35s ease;
+        }
+        .page.active {
+            display: block;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .card {
+            background: var(--tg-secondary-bg);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        .card-glow {
+            border: 1px solid var(--tg-button);
+            box-shadow: 0 0 40px rgba(240, 185, 11, 0.08);
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--tg-section-header);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .glow-btn {
+            background: var(--tg-button);
+            color: var(--tg-button-text);
+            border: none;
+            font-weight: 800;
+            padding: 16px 20px;
+            border-radius: 60px;
+            font-size: 16px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 0 30px rgba(240, 185, 11, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .glow-btn:active {
+            transform: scale(0.96);
+            opacity: 0.8;
+        }
+        .glow-btn:disabled {
+            opacity: 0.4;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .glow-btn .spin {
+            display: inline-block;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        .btn-success {
+            background: #3ddc84;
+            box-shadow: 0 0 30px rgba(61, 220, 132, 0.2);
+            color: #0b0e11;
+        }
+        .btn-success:disabled {
+            background: #2b3139;
+            color: var(--tg-hint);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .stat-box {
+            background: var(--tg-section-bg);
+            padding: 14px 6px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .stat-box .num {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--tg-text);
+            line-height: 1.2;
+        }
+        .stat-box .label {
+            font-size: 9px;
+            color: var(--tg-hint);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .level-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid transparent;
+        }
+        .level-silver {
+            background: #a0a0a0;
+            color: #000;
+        }
+        .level-bronze {
+            background: #cd7f32;
+            color: #fff;
+        }
+        .level-gold {
+            background: #f0b90b;
+            color: #000;
+        }
+        .level-platinum {
+            background: #e5e4e2;
+            color: #000;
+        }
+        .level-diamond {
+            background: #b9f2ff;
+            color: #000;
+        }
+        .level-progress-wrap {
+            background: var(--tg-section-bg);
+            border-radius: 30px;
+            height: 8px;
+            margin: 12px 0 8px;
+            overflow: hidden;
+        }
+        .level-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--tg-button), #ffd700);
+            border-radius: 30px;
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        .task-info h4 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .task-info p {
+            font-size: 11px;
+            color: var(--tg-hint);
+            margin-top: 2px;
+        }
+        .task-btn {
+            background: var(--tg-section-bg);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--tg-text);
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .task-btn:active {
+            transform: scale(0.94);
+        }
+        .task-btn.done {
+            background: #1f8b4c;
+            color: #fff;
+            border-color: #1f8b4c;
+            opacity: 0.7;
+            cursor: default;
+        }
+        .task-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .ref-link-box {
+            background: var(--tg-section-bg);
+            padding: 14px 16px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            word-break: break-all;
+            font-size: 12px;
+            border: 1px dashed rgba(240, 185, 11, 0.3);
+            margin-top: 10px;
+        }
+        .ref-link-box span {
+            flex: 1;
+            font-weight: 500;
+            color: var(--tg-hint);
+        }
+        .copy-btn {
+            background: var(--tg-button);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: var(--tg-button-text);
+            cursor: pointer;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .copy-btn:active {
+            transform: scale(0.94);
+        }
+        .ref-stats {
+            background: linear-gradient(145deg, rgba(240, 185, 11, 0.08), rgba(240, 185, 11, 0.02));
+            border: 1px solid rgba(240, 185, 11, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 14px 0;
+        }
+        .wallet-input {
+            background: var(--tg-section-bg);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 14px 16px;
+            width: 100%;
+            color: var(--tg-text);
+            font-size: 14px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .wallet-input:focus {
+            border-color: var(--tg-button);
+            box-shadow: 0 0 0 4px rgba(240, 185, 11, 0.1);
+        }
+        .wallet-warning {
+            background: rgba(255, 68, 68, 0.08);
+            border-left: 3px solid #ff4444;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #ff6666;
+            margin-bottom: 14px;
+        }
+        .profile-avatar {
+            font-size: 56px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .profile-name {
+            font-size: 20px;
+            font-weight: 800;
+            text-align: center;
+        }
+        .profile-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 13px;
+        }
+        .profile-detail-row:last-child {
+            border-bottom: none;
+        }
+        .profile-detail-row .label {
+            color: var(--tg-hint);
+        }
+        .profile-detail-row .value {
+            font-weight: 600;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .mt-1 {
+            margin-top: 8px;
+        }
+        .text-muted {
+            color: var(--tg-hint);
+            font-size: 12px;
+        }
+        .text-gold {
+            color: var(--tg-button);
+        }
+        .text-red {
+            color: #ff4444;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .missed-badge {
+            background: rgba(255, 68, 68, 0.12);
+            color: #ff6666;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 68, 68, 0.15);
+        }
+        @media (max-width: 420px) {
+            .stat-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            .stat-box .num {
+                font-size: 16px;
+            }
+            .app-header h1 {
+                font-size: 17px;
+            }
+            .card {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 20px;">🐕</span>
-            <span style="font-weight: bold; font-size: 14px; color: #f59e0b;">$LDOGE App</span>
+    <!-- ===== HEADER ===== -->
+    <div class="app-header">
+        <div class="logo-wrap">
+            <!-- DEFAULT DOGE LOGO -->
+            <svg viewBox="0 0 100 100" style="width:40px; height:40px;">
+                <circle cx="50" cy="50" r="45" fill="#f0b90b" />
+                <circle cx="35" cy="40" r="10" fill="#fff" />
+                <circle cx="65" cy="40" r="10" fill="#fff" />
+                <circle cx="35" cy="40" r="5" fill="#000" />
+                <circle cx="65" cy="40" r="5" fill="#000" />
+                <ellipse cx="50" cy="60" rx="18" ry="10" fill="#fff" />
+                <path d="M30 65 Q50 80 70 65" stroke="#000" stroke-width="4" fill="none" />
+                <text x="50" y="92" text-anchor="middle" font-size="12" fill="#fff" font-weight="bold">DOGE</text>
+            </svg>
         </div>
-        <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 4px 10px; border-radius: 8px; font-size: 11px; color: #f59e0b; font-weight: bold;">
-            🚀 Mining Active
+        <h1>$LDOGE</h1>
+        <span class="badge">⛏️ Mine</span>
+    </div>
+
+    <!-- ===== PAGES ===== -->
+    <div id="pageHome" class="page active">
+        <div class="card card-glow">
+            <div class="card-title">💰 Dashboard</div>
+            <div class="text-center" style="margin: 6px 0 8px;">
+                <div style="font-size: 38px; font-weight: 900; color: var(--tg-text); letter-spacing: -0.5px;" id="displayBalance">0.00</div>
+                <div style="font-size: 13px; color: var(--tg-hint); font-weight: 500;">$LDOGE Balance</div>
+            </div>
+            <button class="glow-btn" id="mineBtn">
+                <span class="spin">⛏️</span> Mine Now (5 Coins)
+            </button>
+            <div id="cooldownTimer" style="text-align:center; margin-top:12px; font-size:13px; color: var(--tg-hint); font-weight:500;">✅ Ready to mine!</div>
+            <div class="stat-grid">
+                <div class="stat-box"><div class="num" id="statMined">0</div><div class="label">Mined</div></div>
+                <div class="stat-box"><div class="num" id="statLevel">Silver</div><div class="label">Level</div></div>
+                <div class="stat-box"><div class="num" id="statRefs">0</div><div class="label">Referrals</div></div>
+            </div>
+            <div class="flex-between mt-1">
+                <span id="levelTag" class="level-badge level-silver">Silver</span>
+                <span id="missedDaysDisplay" class="missed-badge">🔥 0 days missed</span>
+            </div>
+            <div class="level-progress-wrap"><div class="level-progress-bar" id="levelProgress" style="width:0%;"></div></div>
+            <div style="font-size:11px; color: var(--tg-hint); font-weight:500;" id="nextLevelText">Next: Bronze (1000 mined)</div>
+        </div>
+        <div class="card" style="border: 1px solid rgba(61, 220, 132, 0.2);">
+            <div class="card-title">🎁 Welcome Bonus</div>
+            <p class="text-muted" id="welcomeBonusMsg">Claim your 20 $LDOGE welcome bonus!</p>
+            <button class="glow-btn btn-success" id="claimWelcomeBtn" style="margin-top:12px;">🎁 Claim 20 Coins</button>
         </div>
     </div>
 
-    <div class="card" style="text-align: center; padding: 20px;">
-        <p style="font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px;">Total Balance</p>
-        <h1 id="balanceDisplay" style="font-size: 36px; font-weight: 900; color: #f59e0b; margin-top: 4px;">10</h1>
-        <p style="font-size: 11px; color: #94a3b8; font-weight: 600;">$LDOGE TOKENS</p>
+    <div id="pageTasks" class="page">
+        <div class="card">
+            <div class="card-title">📋 Task Center</div>
+            <p class="text-muted" style="margin-bottom:16px;">Complete each task once to earn <strong>5 $LDOGE</strong> per task.</p>
+            <div id="taskList"></div>
+        </div>
     </div>
 
-    <div class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-        <p id="statusText" style="font-size: 11px; font-weight: bold; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Ready to Claim</p>
-        <div id="timerDisplay" style="font-size: 28px; font-family: monospace; font-weight: 900; color: #22d3ee; margin-bottom: 16px;">00:00:00</div>
-        
-        <button id="claimBtn" onclick="handleClaim()" class="coin-btn" style="width: 110px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-            <span style="font-size: 28px; margin-bottom: 2px;">🪙</span>
-            <span id="btnText" style="font-size: 10px; text-transform: uppercase; font-weight: 800;">CLAIM 🚀</span>
-        </button>
-        <p style="font-size: 11px; color: #94a3b8; margin-top: 14px;">Reward: <span style="color: #34d399; font-weight: bold;">+5 Coins</span></p>
+    <div id="pageReferral" class="page">
+        <div class="card card-glow">
+            <div class="card-title">👥 Invite & Earn</div>
+            <p class="text-muted">Get <strong>10%</strong> of your friend's mining & <strong>10 coins</strong> per invite. (Max 50% cap)</p>
+            <div class="ref-stats">
+                <div class="stat-grid" style="margin-top:0;">
+                    <div class="stat-box" style="background:transparent; border:none; padding:4px;"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
+                    <div class="stat-box" style="background:transparent; border:none; padding:4px;"><div class="num" id="refEarnings">0.00</div><div class="label">Earned (10%)</div></div>
+                    <div class="stat-box" style="background:transparent; border:none; padding:4px;"><div class="num" id="refCap">0%</div><div class="label">Cap Usage</div></div>
+                </div>
+            </div>
+            <div class="ref-link-box">
+                <span id="refLinkDisplay">Loading...</span>
+                <button class="copy-btn" id="copyRefBtn">Copy</button>
+            </div>
+            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px; background: #1a8cd8; box-shadow:0 0 30px #1a8cd866;">📤 Share with Friends</button>
+        </div>
+        <div class="card">
+            <div class="card-title">👫 Your Referrals</div>
+            <div id="referralListContainer"><p class="text-muted">No referrals yet.</p></div>
+        </div>
     </div>
 
-<script>
-    let userId = localStorage.getItem('ldoge_uid');
-    if (!userId) {
-        userId = "user_" + Math.floor(Math.random() * 90000 + 10000);
-        localStorage.setItem('ldoge_uid', userId);
-    }
+    <div id="pageWallet" class="page">
+        <div class="card">
+            <div class="card-title">💳 Wallet Setup</div>
+            <div class="wallet-warning">⚠️ <strong>Exchange wallets (Binance, Coinbase, etc.) are NOT allowed.</strong><br>Only personal wallets like Phantom, Solflare, MetaMask, Trust Wallet are accepted.</div>
+            <label style="font-size:13px; font-weight:600; color: var(--tg-text); display:block; margin-bottom:6px;">🟣 Solana (Phantom, Solflare)</label>
+            <input type="text" class="wallet-input" id="walletSolana" placeholder="e.g. 8x...xyz (Base58)">
+            <label style="font-size:13px; font-weight:600; color: var(--tg-text); display:block; margin-bottom:6px; margin-top:4px;">🔵 Base / EVM (MetaMask, Coinbase Wallet)</label>
+            <input type="text" class="wallet-input" id="walletBase" placeholder="e.g. 0x... (40 hex chars)">
+            <button class="glow-btn" id="saveWalletBtn" style="background: var(--tg-section-bg); color: var(--tg-text); box-shadow:none; border:1px solid rgba(255,255,255,0.06); margin-top:6px;">💾 Save Wallets</button>
+            <div id="walletStatus" style="margin-top:12px; font-size:13px; font-weight:500; color: var(--tg-hint);"></div>
+        </div>
+    </div>
 
-    let balance = 10;
-    let miningEndTime = 0;
-    let timerInterval = null;
-    const COIN_DURATION = 3 * 60 * 60;
-
-    // Firebase Initialization
-    const firebaseConfig = {
-      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
-      authDomain: "cyrusprotocol-b3080.firebaseapp.com",
-      databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
-      projectId: "cyrusprotocol-b3080",
-      storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
-      messagingSenderId: "457843406848",
-      appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const userRef = db.ref('users/' + userId);
-
-    userRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            balance = data.balance || 10;
-            miningEndTime = data.miningEndTime || 0;
-            updateUI();
-            checkMiningTimer();
-        } else {
-            userRef.set({ balance: balance, miningEndTime: 0 });
-        }
-    });
-
-    function updateUI() {
-        document.getElementById('balanceDisplay').innerText = balance;
-    }
-
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-
-    function handleClaim() {
-        balance += 5;
-        miningEndTime = Math.floor(Date.now() / 1000) + COIN_DURATION;
-        userRef.update({ balance: balance, miningEndTime: miningEndTime });
-        startCountdown(COIN_DURATION);
-    }
-
-    function checkMiningTimer() {
-        if (miningEndTime > 0) {
-            let remaining = miningEndTime - Math.floor(Date.now() / 1000);
-            if (remaining > 0) startCountdown(remaining);
-            else resetTimerUI();
-        } else {
-            resetTimerUI();
-        }
-    }
-
-    function startCountdown(durationSeconds) {
-        if (timerInterval) clearInterval(timerInterval);
-        const btn = document.getElementById('claimBtn');
-        document.getElementById('statusText').innerText = "Mining in Progress";
-        document.getElementById('btnText').innerText = "MINING";
-        btn.disabled = true;
-
-        let timeLeft = durationSeconds;
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                resetTimerUI();
-            }
-        }, 1000);
-    }
-
-    function resetTimerUI() {
-        document.getElementById('statusText').innerText = "Ready to Claim";
-        document.getElementById('btnText').innerText = "CLAIM 🚀";
-        document.getElementById('claimBtn').disabled = false;
-        document.getElementById('timerDisplay').innerText = "00:00:00";
-    }
-</script>
-</body>
-</html>
+    <div id="pageProfile" class="page">
+        <div class="card" style
