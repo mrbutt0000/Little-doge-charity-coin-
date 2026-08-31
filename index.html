@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
     </script>
     <style>
+        /* ===== FULL CSS (same as before, compressed) ===== */
         * {
             margin: 0;
             padding: 0;
@@ -541,7 +542,7 @@
 
     <script>
         // ============================================================
-        //  🔥 FIREBASE
+        //  🔥 FIREBASE CONFIG
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
@@ -575,7 +576,6 @@
             startParam = tg.initDataUnsafe?.start_param;
         }
 
-        // BLOCK BROWSER
         if (!tgUser) {
             tgUser = { id: 123456789, first_name: "Blocked", username: "blocked" };
-            logMsg("🚫 Browser open detected. U
+ 
