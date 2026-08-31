@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
     </script>
     <style>
-        /* ===== FULL CSS (same as before, compressed) ===== */
+        /* ===== FULL CSS (same as before) ===== */
         * {
             margin: 0;
             padding: 0;
@@ -273,14 +273,12 @@
             animation: pulse 1s infinite;
         }
         @keyframes pulse {
-            0% {
+            0%,
+            100% {
                 transform: scale(1);
             }
             50% {
                 transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
             }
         }
         .ref-box {
@@ -391,13 +389,6 @@
             color: #ff4444;
             border-left-color: #ff4444;
         }
-        .admin-user-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 0;
-            border-bottom: 1px solid #2b3139;
-            font-size: 12px;
-        }
         @media (max-width: 420px) {
             .stat-grid {
                 gap: 6px;
@@ -417,28 +408,26 @@
 </head>
 <body>
 
-    <!-- HEADER -->
     <div class="header">
         <div class="logo">🐶</div>
         <h1>$LDOGE</h1>
         <span class="tag">🔴 LIVE</span>
     </div>
 
-    <!-- DEBUG LOG -->
     <div style="padding: 10px 16px 0;">
         <div id="debugLog" class="debug-log">⏳ Initializing...</div>
     </div>
 
-    <!-- PAGES -->
+    <!-- HOME -->
     <div id="pageHome" class="page active">
         <div class="card card-glow">
             <div class="card-title">💰 Dashboard</div>
             <div class="text-center">
                 <div class="big-num" id="displayBalance">0.00</div>
-                <div style="color:#848e9c; font-size:13px;">$LDOGE Balance</div>
+                <div style="color:#848e9c;font-size:13px;">$LDOGE Balance</div>
             </div>
             <button class="glow-btn" id="mineBtn"><span class="spin">⛏️</span> Mine Now (5 Coins)</button>
-            <div id="cooldownTimer" style="text-align:center; margin-top:12px; color:#848e9c; font-size:13px;">✅ Ready</div>
+            <div id="cooldownTimer" style="text-align:center;margin-top:12px;color:#848e9c;font-size:13px;">✅ Ready</div>
             <div class="stat-grid">
                 <div class="stat-box"><div class="num" id="statMined">0</div><div class="label">Mined</div></div>
                 <div class="stat-box"><div class="num" id="statLevel">Silver</div><div class="label">Level</div></div>
@@ -449,7 +438,7 @@
                 <span id="missedDaysDisplay" class="missed-badge">🔥 0 days missed</span>
             </div>
             <div class="progress-wrap"><div class="progress-bar" id="levelProgress"></div></div>
-            <div style="font-size:11px; color:#848e9c;" id="nextLevelText">Next: Bronze (1000 mined)</div>
+            <div style="font-size:11px;color:#848e9c;" id="nextLevelText">Next: Bronze (1000 mined)</div>
         </div>
         <div class="card" style="border-color:#3ddc8444;">
             <div class="card-title">🎁 Welcome Bonus</div>
@@ -458,14 +447,16 @@
         </div>
     </div>
 
+    <!-- TASKS -->
     <div id="pageTasks" class="page">
         <div class="card">
             <div class="card-title">📋 Social Tasks</div>
-            <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong> for team verification, then claim <strong>5 $LDOGE</strong> (once).</p>
+            <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong> for verification, then claim <strong>5 $LDOGE</strong> (once).</p>
             <div id="taskList"></div>
         </div>
     </div>
 
+    <!-- REFERRAL -->
     <div id="pageReferral" class="page">
         <div class="card card-glow">
             <div class="card-title">👥 Invite</div>
@@ -479,7 +470,7 @@
                 <span id="refLinkDisplay">Loading...</span>
                 <button class="copy-btn" id="copyRefBtn">Copy</button>
             </div>
-            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px; background:#1a8cd8; box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
+            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px;background:#1a8cd8;box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
         </div>
         <div class="card">
             <div class="card-title">👫 Friends</div>
@@ -487,25 +478,27 @@
         </div>
     </div>
 
+    <!-- WALLET -->
     <div id="pageWallet" class="page">
         <div class="card">
             <div class="card-title">💳 Wallet</div>
-            <div class="wallet-warn">⚠️ Only personal wallets allowed (No exchanges).</div>
-            <label style="font-size:13px; font-weight:600;">🟣 Solana</label>
+            <div class="wallet-warn">⚠️ Only personal wallets allowed.</div>
+            <label style="font-size:13px;font-weight:600;">🟣 Solana</label>
             <input type="text" class="wallet-input" id="walletSolana" placeholder="Base58 address">
-            <label style="font-size:13px; font-weight:600; margin-top:6px;">🔵 Base / EVM</label>
+            <label style="font-size:13px;font-weight:600;margin-top:6px;">🔵 Base / EVM</label>
             <input type="text" class="wallet-input" id="walletBase" placeholder="0x...">
-            <button class="glow-btn" id="saveWalletBtn" style="background:#2b3139; box-shadow:none;">💾 Save</button>
-            <div id="walletStatus" style="margin-top:12px; color:#848e9c;"></div>
+            <button class="glow-btn" id="saveWalletBtn" style="background:#2b3139;box-shadow:none;">💾 Save</button>
+            <div id="walletStatus" style="margin-top:12px;color:#848e9c;"></div>
         </div>
     </div>
 
+    <!-- PROFILE -->
     <div id="pageProfile" class="page">
         <div class="card" style="text-align:center;">
             <div style="font-size:56px;">🐶</div>
             <h2 id="profileName">User</h2>
             <span id="profileLevelTag" class="level-badge">Silver</span>
-            <div style="margin-top:16px; background:#13181d; padding:16px; border-radius:16px; text-align:left;">
+            <div style="margin-top:16px;background:#13181d;padding:16px;border-radius:16px;text-align:left;">
                 <div class="profile-row"><span class="lbl">ID</span><span id="profileTgId">-</span></div>
                 <div class="profile-row"><span class="lbl">Mined</span><span id="profileMined">0</span></div>
                 <div class="profile-row"><span class="lbl">Balance</span><span class="text-gold" id="profileBalance">0</span></div>
@@ -517,32 +510,18 @@
         </div>
     </div>
 
-    <div id="pageAdmin" class="page">
-        <div class="card card-glow">
-            <div class="card-title">📊 Admin (Global Stats)</div>
-            <div class="stat-grid">
-                <div class="stat-box"><div class="num" id="adminTotalUsers">0</div><div class="label">Users</div></div>
-                <div class="stat-box"><div class="num" id="adminTotalMined">0</div><div class="label">Mined</div></div>
-                <div class="stat-box"><div class="num" id="adminTotalBalance">0</div><div class="label">Balance</div></div>
-            </div>
-            <button class="glow-btn" id="refreshAdminBtn" style="background:#2b3139; box-shadow:none;">🔄 Refresh</button>
-            <div style="margin-top:16px; max-height:350px; overflow-y:auto;" id="adminUserList"><p class="text-muted">Loading...</p></div>
-        </div>
-    </div>
-
-    <!-- NAV -->
+    <!-- NAV (5 Tabs) -->
     <div class="bottom-nav">
         <button class="nav-item active" data-page="pageHome"><span class="icon">🏠</span> Home</button>
         <button class="nav-item" data-page="pageTasks"><span class="icon">📋</span> Tasks</button>
         <button class="nav-item" data-page="pageReferral"><span class="icon">👥</span> Refer</button>
         <button class="nav-item" data-page="pageWallet"><span class="icon">💳</span> Wallet</button>
         <button class="nav-item" data-page="pageProfile"><span class="icon">👤</span> Profile</button>
-        <button class="nav-item" data-page="pageAdmin"><span class="icon">📊</span> Admin</button>
     </div>
 
     <script>
         // ============================================================
-        //  🔥 FIREBASE CONFIG
+        // FIREBASE CONFIG
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
@@ -555,17 +534,19 @@
         };
 
         let db = null;
+        let firebaseReady = false;
+
         try {
             const app = firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-            logMsg("✅ Firebase connected!", false);
+            firebaseReady = true;
+            logMsg("✅ Firebase connected!");
         } catch (e) {
             logMsg("❌ Firebase init failed: " + e.message, true);
-            console.error(e);
         }
 
         // ============================================================
-        //  📱 TELEGRAM
+        // TELEGRAM
         // ============================================================
         const tg = window.Telegram?.WebApp;
         let tgUser = null;
@@ -575,7 +556,37 @@
             tgUser = tg.initDataUnsafe?.user;
             startParam = tg.initDataUnsafe?.start_param;
         }
-
         if (!tgUser) {
             tgUser = { id: 123456789, first_name: "Blocked", username: "blocked" };
- 
+            logMsg("🚫 Browser detected! Use Telegram App.", true);
+        }
+
+        const userId = tgUser.id.toString();
+        const userRef = db ? db.ref('users/' + userId) : null;
+
+        // ============================================================
+        // DEBUG LOG
+        // ============================================================
+        function logMsg(msg, isError) {
+            var el = document.getElementById('debugLog');
+            if (!el) return;
+            var time = new Date().toLocaleTimeString();
+            el.innerText = '[' + time + '] ' + msg;
+            if (isError) {
+                el.className = 'debug-log debug-error';
+                el.style.color = '#ff4444';
+            } else {
+                el.className = 'debug-log';
+                el.style.color = '#3ddc84';
+            }
+            console.log(msg);
+        }
+
+        // ============================================================
+        // APP STATE
+        // ============================================================
+        var userData = null;
+        var COOLDOWN_MS = 3 * 60 * 60 * 1000;
+        var TASK_WAIT_MS = 5 * 60 * 1000;
+
+        // ================
