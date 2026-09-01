@@ -1,571 +1,283 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🐶 Little Doge</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
-    </script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐶 LDOGE</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        body {
-            background: #0b0e11;
-            color: #eaecef;
-            padding-bottom: 90px;
-        }
-        .header {
-            background: #1e2329;
-            padding: 12px 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            border-bottom: 2px solid #f0b90b;
-        }
-        .header .logo {
-            font-size: 28px;
-        }
-        .header h1 {
-            font-size: 20px;
-            color: #f0b90b;
-        }
-        .header .tag {
-            margin-left: auto;
-            background: #f0b90b;
-            color: #000;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 4px 12px;
-            border-radius: 30px;
-        }
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e2329;
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0 12px;
-            border-top: 1px solid #2b3139;
-            z-index: 200;
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: transparent;
-            border: none;
-            color: #848e9c;
-            font-size: 10px;
-            gap: 2px;
-            padding: 4px 12px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .nav-item .icon {
-            font-size: 22px;
-        }
-        .nav-item.active {
-            color: #f0b90b;
-        }
-        .page {
-            display: none;
-            padding: 18px 16px;
-        }
-        .page.active {
-            display: block;
-        }
-        .card {
-            background: #1e2329;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 16px;
-            border: 1px solid #2b3139;
-        }
-        .card-glow {
-            border-color: #f0b90b;
-        }
-        .card-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #f0b90b;
-            margin-bottom: 14px;
-        }
-        .glow-btn {
-            background: #f0b90b;
-            color: #000;
-            border: none;
-            font-weight: 800;
-            padding: 16px;
-            border-radius: 60px;
-            font-size: 16px;
-            width: 100%;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
-        .glow-btn:active {
-            transform: scale(0.96);
-            opacity: 0.8;
-        }
-        .glow-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .btn-green {
-            background: #3ddc84;
-            color: #000;
-        }
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 14px;
-        }
-        .stat-box {
-            background: #13181d;
-            padding: 12px 4px;
-            border-radius: 12px;
-            text-align: center;
-        }
-        .stat-box .num {
-            font-size: 18px;
-            font-weight: 800;
-        }
-        .stat-box .label {
-            font-size: 9px;
-            color: #848e9c;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-        .level-badge {
-            display: inline-block;
-            padding: 3px 14px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 800;
-            background: #a0a0a0;
-            color: #000;
-        }
-        .level-badge.bronze {
-            background: #cd7f32;
-            color: #fff;
-        }
-        .level-badge.gold {
-            background: #f0b90b;
-            color: #000;
-        }
-        .level-badge.platinum {
-            background: #e5e4e2;
-            color: #000;
-        }
-        .level-badge.diamond {
-            background: #b9f2ff;
-            color: #000;
-        }
-        .progress-wrap {
-            background: #13181d;
-            border-radius: 30px;
-            height: 8px;
-            margin: 12px 0 6px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #f0b90b, #ffd700);
-            width: 0%;
-            transition: width 0.5s;
-        }
-        .task-item {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #2b3139;
-        }
-        .task-item:last-child {
-            border-bottom: none;
-        }
-        .task-info {
-            flex: 1;
-            min-width: 140px;
-        }
-        .task-info h4 {
-            font-size: 14px;
-        }
-        .task-info p {
-            font-size: 11px;
-            color: #848e9c;
-        }
-        .task-info a {
-            color: #f0b90b;
-            font-size: 10px;
-            display: block;
-        }
-        .task-btn {
-            background: #13181d;
-            border: none;
-            color: #eaecef;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .task-btn.done {
-            background: #1f8b4c;
-            color: #fff;
-            opacity: 0.6;
-            cursor: default;
-        }
-        .task-btn.pending {
-            background: #ff884422;
-            color: #ff8844;
-            cursor: default;
-        }
-        .task-btn.ready {
-            background: #3ddc84;
-            color: #000;
-        }
-        .ref-box {
-            background: #13181d;
-            padding: 12px 16px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            border: 1px dashed #f0b90b;
-            margin-top: 10px;
-            word-break: break-all;
-        }
-        .copy-btn {
-            background: #f0b90b;
-            border: none;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-weight: 700;
-            color: #000;
-            cursor: pointer;
-        }
-        .wallet-input {
-            background: #13181d;
-            border: 1px solid #2b3139;
-            border-radius: 12px;
-            padding: 14px;
-            width: 100%;
-            color: #fff;
-            font-size: 14px;
-            margin-bottom: 12px;
-            outline: none;
-        }
-        .wallet-input:focus {
-            border-color: #f0b90b;
-        }
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .mt-1 {
-            margin-top: 8px;
-        }
-        .text-muted {
-            color: #848e9c;
-            font-size: 12px;
-        }
-        .text-gold {
-            color: #f0b90b;
-        }
-        .text-red {
-            color: #ff4444;
-        }
-        .missed-badge {
-            background: #ff444422;
-            color: #ff6666;
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-size: 11px;
-            border: 1px solid #ff444466;
-        }
-        .profile-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #2b3139;
-            font-size: 13px;
-        }
-        .profile-row:last-child {
-            border-bottom: none;
-        }
-        .profile-row .lbl {
-            color: #848e9c;
-        }
-        .wallet-warn {
-            background: #ff444422;
-            border-left: 3px solid #ff4444;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #ff6666;
-            margin-bottom: 14px;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .big-num {
-            font-size: 36px;
-            font-weight: 900;
-        }
-        .debug-box {
-            background: #13181d;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 12px;
-            margin-bottom: 12px;
-            border-left: 3px solid #f0b90b;
-            font-family: monospace;
-            color: #3ddc84;
-            max-height: 80px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .debug-box.error {
-            color: #ff4444;
-            border-left-color: #ff4444;
-        }
-        @media (max-width: 420px) {
-            .stat-grid {
-                gap: 6px;
-            }
-            .stat-box .num {
-                font-size: 16px;
-            }
-        }
+        body{background:#0b0e11;color:#fff;font-family:sans-serif;padding:20px}
+        .card{background:#1e2329;padding:20px;border-radius:16px;margin-bottom:16px}
+        .glow-btn{background:#f0b90b;color:#000;border:none;font-weight:800;padding:16px;border-radius:60px;font-size:16px;width:100%;cursor:pointer}
+        .glow-btn:disabled{opacity:0.4}
+        .big-num{font-size:36px;font-weight:900}
+        .debug{background:#13181d;padding:12px;border-radius:10px;font-family:monospace;font-size:13px;margin-bottom:16px;border-left:3px solid #f0b90b;min-height:50px;white-space:pre-wrap}
+        .debug.error{border-left-color:#ff4444;color:#ff4444}
+        .debug.success{border-left-color:#3ddc84;color:#3ddc84}
+        .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+        .stat-box{background:#13181d;padding:12px;border-radius:12px;text-align:center}
+        .stat-box .num{font-size:18px;font-weight:800}
+        .stat-box .label{font-size:9px;color:#848e9c}
+        .text-muted{color:#848e9c}
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="logo">🐶</div>
-        <h1>$LDOGE</h1>
-        <span class="tag">⛏️ MINE</span>
-    </div>
+<div id="log" class="debug">⏳ Starting...</div>
 
-    <div style="padding: 10px 16px 0;">
-        <div id="debugBox" class="debug-box">⏳ Starting...</div>
+<div class="card">
+    <h2 style="color:#f0b90b;">💰 Dashboard</h2>
+    <div style="text-align:center;">
+        <div class="big-num" id="bal">0.00</div>
+        <div style="color:#848e9c;">$LDOGE Balance</div>
     </div>
-
-    <!-- HOME -->
-    <div id="pageHome" class="page active">
-        <div class="card card-glow">
-            <div class="card-title">💰 Dashboard</div>
-            <div class="text-center">
-                <div class="big-num" id="displayBalance">0.00</div>
-                <div style="color:#848e9c;font-size:13px;">$LDOGE Balance</div>
-            </div>
-            <button class="glow-btn" id="mineBtn"><span id="mineSpin" style="display:inline-block;">⛏️</span> Mine Now (5 Coins)</button>
-            <div id="cooldownTimer" style="text-align:center;margin-top:12px;color:#848e9c;font-size:13px;">✅ Ready</div>
-            <div class="stat-grid">
-                <div class="stat-box"><div class="num" id="statMined">0</div><div class="label">Mined</div></div>
-                <div class="stat-box"><div class="num" id="statLevel">Silver</div><div class="label">Level</div></div>
-                <div class="stat-box"><div class="num" id="statRefs">0</div><div class="label">Referrals</div></div>
-            </div>
-            <div class="flex-between mt-1">
-                <span id="levelTag" class="level-badge">Silver</span>
-                <span id="missedDaysDisplay" class="missed-badge">🔥 0 days missed</span>
-            </div>
-            <div class="progress-wrap"><div class="progress-bar" id="levelProgress"></div></div>
-            <div style="font-size:11px;color:#848e9c;" id="nextLevelText">Next: Bronze (1000 mined)</div>
-        </div>
-        <div class="card" style="border-color:#3ddc8444;">
-            <div class="card-title">🎁 Welcome Bonus</div>
-            <p class="text-muted" id="welcomeBonusMsg">Claim your 20 $LDOGE welcome bonus!</p>
-            <button class="glow-btn btn-green" id="claimWelcomeBtn" style="margin-top:12px;">🎁 Claim 20 Coins</button>
-        </div>
+    <button class="glow-btn" id="mineBtn">⛏️ Mine (5 Coins)</button>
+    <div id="timer" style="text-align:center;margin-top:12px;color:#848e9c;">✅ Ready</div>
+    <div class="stat-grid">
+        <div class="stat-box"><div class="num" id="mined">0</div><div class="label">Mined</div></div>
+        <div class="stat-box"><div class="num" id="lvl">Silver</div><div class="label">Level</div></div>
+        <div class="stat-box"><div class="num" id="refs">0</div><div class="label">Referrals</div></div>
     </div>
+</div>
 
-    <!-- TASKS -->
-    <div id="pageTasks" class="page">
-        <div class="card">
-            <div class="card-title">📋 Social Tasks</div>
-            <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong>, then claim <strong>5 $LDOGE</strong>.</p>
-            <div id="taskList"></div>
-        </div>
-    </div>
+<div class="card">
+    <h2 style="color:#f0b90b;">🎁 Welcome</h2>
+    <p class="text-muted" id="wmsg">Claim 20 $LDOGE!</p>
+    <button class="glow-btn" id="wbtn" style="background:#3ddc84;">🎁 Claim</button>
+</div>
 
-    <!-- REFERRAL -->
-    <div id="pageReferral" class="page">
-        <div class="card card-glow">
-            <div class="card-title">👥 Invite & Earn</div>
-            <p class="text-muted">10% of friend's mining + 10 coins per invite (50% cap)</p>
-            <div class="stat-grid" style="margin-top:14px;">
-                <div class="stat-box"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
-                <div class="stat-box"><div class="num" id="refEarnings">0.00</div><div class="label">Earned</div></div>
-                <div class="stat-box"><div class="num" id="refCap">0%</div><div class="label">Cap</div></div>
-            </div>
-            <div class="ref-box">
-                <span id="refLinkDisplay">Loading...</span>
-                <button class="copy-btn" id="copyRefBtn">Copy</button>
-            </div>
-            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px;background:#1a8cd8;box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
-        </div>
-        <div class="card">
-            <div class="card-title">👫 Your Friends</div>
-            <div id="referralListContainer"><p class="text-muted">No referrals yet.</p></div>
-        </div>
-    </div>
+<script>
+// ============================================
+// STEP 1: Debug function (works immediately)
+// ============================================
+function log(msg, type) {
+    var el = document.getElementById('log');
+    if (!el) return;
+    var t = new Date().toLocaleTimeString();
+    el.innerText = '[' + t + '] ' + msg;
+    el.className = 'debug' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
+    console.log(msg);
+}
 
-    <!-- WALLET -->
-    <div id="pageWallet" class="page">
-        <div class="card">
-            <div class="card-title">💳 Wallet Setup</div>
-            <div class="wallet-warn">⚠️ Only personal wallets allowed (no exchanges).</div>
-            <label style="font-size:13px;font-weight:600;">🟣 Solana</label>
-            <input type="text" class="wallet-input" id="walletSolana" placeholder="Base58 address">
-            <label style="font-size:13px;font-weight:600;margin-top:6px;">🔵 Base / EVM</label>
-            <input type="text" class="wallet-input" id="walletBase" placeholder="0x...">
-            <button class="glow-btn" id="saveWalletBtn" style="background:#2b3139;box-shadow:none;">💾 Save</button>
-            <div id="walletStatus" style="margin-top:12px;color:#848e9c;"></div>
-        </div>
-    </div>
+log('🚀 Script started');
 
-    <!-- PROFILE -->
-    <div id="pageProfile" class="page">
-        <div class="card" style="text-align:center;">
-            <div style="font-size:56px;">🐶</div>
-            <h2 id="profileName">User</h2>
-            <span id="profileLevelTag" class="level-badge">Silver</span>
-            <div style="margin-top:16px;background:#13181d;padding:16px;border-radius:16px;text-align:left;">
-                <div class="profile-row"><span class="lbl">ID</span><span id="profileTgId">-</span></div>
-                <div class="profile-row"><span class="lbl">Mined</span><span id="profileMined">0</span></div>
-                <div class="profile-row"><span class="lbl">Balance</span><span class="text-gold" id="profileBalance">0</span></div>
-                <div class="profile-row"><span class="lbl">Burned</span><span class="text-red" id="profileBurned">0</span></div>
-                <div class="profile-row"><span class="lbl">Missed Days</span><span id="profileMissed">0</span></div>
-                <div class="profile-row"><span class="lbl">Referrals</span><span id="profileRefs">0</span></div>
-                <div class="profile-row" style="border:none;"><span class="lbl">Level</span><span id="profileLevel">Silver</span></div>
-            </div>
-        </div>
-    </div>
+// ============================================
+// STEP 2: Firebase config
+// ============================================
+var config = {
+    apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+    authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+    databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+    projectId: "cyrusprotocol-b3080",
+    storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+    messagingSenderId: "457843406848",
+    appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+};
 
-    <!-- NAV -->
-    <div class="bottom-nav">
-        <button class="nav-item active" data-page="pageHome"><span class="icon">🏠</span> Home</button>
-        <button class="nav-item" data-page="pageTasks"><span class="icon">📋</span> Tasks</button>
-        <button class="nav-item" data-page="pageReferral"><span class="icon">👥</span> Refer</button>
-        <button class="nav-item" data-page="pageWallet"><span class="icon">💳</span> Wallet</button>
-        <button class="nav-item" data-page="pageProfile"><span class="icon">👤</span> Profile</button>
-    </div>
+log('⏳ Initializing Firebase...');
 
-    <script>
-        // ============================================================
-        // ✅ DEBUG FUNCTION
-        // ============================================================
-        function debug(msg, isError) {
-            var el = document.getElementById('debugBox');
-            if (!el) return;
-            var t = new Date().toLocaleTimeString();
-            el.innerText = '[' + t + '] ' + msg;
-            el.className = 'debug-box' + (isError ? ' error' : '');
-            console.log(msg);
+try {
+    var app = firebase.initializeApp(config);
+    var db = firebase.database();
+    log('✅ Firebase connected!', 'success');
+} catch(e) {
+    log('❌ Firebase error: ' + e.message, 'error');
+    alert('Firebase error: ' + e.message);
+}
+
+// ============================================
+// STEP 3: Telegram user
+// ============================================
+log('⏳ Getting Telegram user...');
+
+var tg = window.Telegram?.WebApp;
+var user = null;
+if (tg) {
+    tg.expand();
+    user = tg.initDataUnsafe?.user;
+}
+if (!user) {
+    user = { id: 123456789, first_name: "Test" };
+    log('⚠️ Browser mode (test user)', 'error');
+}
+
+var userId = user.id.toString();
+log('👤 User ID: ' + userId);
+
+// ============================================
+// STEP 4: Load user data
+// ============================================
+var userRef = db ? db.ref('users/' + userId) : null;
+var data = null;
+var COOLDOWN = 3 * 60 * 60 * 1000;
+
+function $(id) { return document.getElementById(id); }
+
+function updateUI() {
+    if (!data) return;
+    $('bal').innerText = (data.balance || 0).toFixed(2);
+    $('mined').innerText = data.minedCoins || 0;
+    $('refs').innerText = data.referralCount || 0;
+    
+    if (data.hasClaimedWelcome) {
+        $('wbtn').disabled = true;
+        $('wbtn').innerText = '✅ Claimed';
+        $('wmsg').innerText = 'Welcome bonus claimed!';
+    } else {
+        $('wbtn').disabled = false;
+        $('wbtn').innerText = '🎁 Claim 20 Coins';
+        $('wmsg').innerText = 'Claim your 20 $LDOGE!';
+    }
+    
+    // Cooldown check
+    var last = data.lastClaimTime || 0;
+    var diff = Date.now() - last;
+    if (diff >= COOLDOWN) {
+        $('mineBtn').disabled = false;
+        $('timer').innerText = '✅ Ready';
+    } else {
+        $('mineBtn').disabled = true;
+        var rem = COOLDOWN - diff;
+        var h = Math.floor(rem/3600000);
+        var m = Math.floor((rem%3600000)/60000);
+        var s = Math.floor((rem%60000)/1000);
+        $('timer').innerText = '⏳ ' + h + 'h ' + m + 'm ' + s + 's';
+        setTimeout(updateUI, 1000);
+    }
+    
+    log('✅ UI updated', 'success');
+}
+
+function saveData() {
+    if (!data || !userRef) return;
+    if (userId === "123456789") {
+        try { localStorage.setItem('ldoge_test', JSON.stringify(data)); } catch(e) {}
+        return;
+    }
+    userRef.set(data).then(function() {
+        log('✅ Saved');
+    }).catch(function(e) {
+        log('❌ Save error: ' + e.message, 'error');
+    });
+}
+
+function loadData() {
+    if (!userRef) {
+        log('❌ No userRef', 'error');
+        return;
+    }
+    
+    // Test user
+    if (userId === "123456789") {
+        log('🔍 Test user mode');
+        var local = localStorage.getItem('ldoge_test');
+        if (local) {
+            try { data = JSON.parse(local); } catch(e) {}
         }
-
-        // ============================================================
-        // 🔥 FIREBASE
-        // ============================================================
-        var firebaseConfig = {
-            apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
-            authDomain: "cyrusprotocol-b3080.firebaseapp.com",
-            databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
-            projectId: "cyrusprotocol-b3080",
-            storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
-            messagingSenderId: "457843406848",
-            appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
-        };
-
-        var db = null;
-        try {
-            var app = firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            debug("✅ Firebase connected!");
-        } catch (e) {
-            debug("❌ Firebase init error: " + e.message, true);
-            alert("Firebase error: " + e.message);
+        if (!data) {
+            data = {
+                balance: 0,
+                minedCoins: 0,
+                hasClaimedWelcome: false,
+                walletSolana: '',
+                walletBase: '',
+                referralCount: 0,
+                lastClaimTime: 0,
+                tasksClaimed: {},
+                tasksPending: {}
+            };
         }
-
-        // ============================================================
-        // 📱 TELEGRAM
-        // ============================================================
-        var tg = window.Telegram?.WebApp;
-        var tgUser = null;
-        var startParam = null;
-        if (tg) {
-            tg.expand();
-            tgUser = tg.initDataUnsafe?.user;
-            startParam = tg.initDataUnsafe?.start_param;
+        updateUI();
+        log('✅ Test user loaded', 'success');
+        return;
+    }
+    
+    log('⏳ Loading user from Firebase...');
+    userRef.once('value').then(function(snap) {
+        var val = snap.val();
+        if (!val) {
+            log('🆕 Creating new user');
+            data = {
+                firstName: user.first_name || 'User',
+                balance: 0,
+                minedCoins: 0,
+                hasClaimedWelcome: false,
+                walletSolana: '',
+                walletBase: '',
+                referralCount: 0,
+                referralList: [],
+                referredBy: null,
+                lastClaimTime: 0,
+                lastLoginDate: new Date().toISOString().split('T')[0],
+                missedDays: 0,
+                tasksClaimed: {},
+                tasksPending: {},
+                totalBurned: 0
+            };
+            userRef.set(data);
+            updateUI();
+            log('✅ New user created', 'success');
+        } else {
+            data = val;
+            updateUI();
+            log('✅ User loaded', 'success');
         }
-        if (!tgUser) {
-            tgUser = { id: 123456789, first_name: "Test", username: "test" };
-            debug("⚠️ Browser test mode", true);
-        }
+    }).catch(function(e) {
+        log('❌ Load error: ' + e.message, 'error');
+        alert('Load error: ' + e.message + '\nCheck Authorized Domains!');
+    });
+}
 
-        var userId = tgUser.id.toString();
-        var userRef = db ? db.ref('users/' + userId) : null;
+// ============================================
+// STEP 5: Mine function
+// ============================================
+function mine() {
+    log('⛏️ Mine clicked');
+    if (!data) return;
+    var now = Date.now();
+    if (now - (data.lastClaimTime || 0) < COOLDOWN) {
+        $('timer').innerText = '⏳ Wait!';
+        return;
+    }
+    data.balance = (data.balance || 0) + 5;
+    data.minedCoins = (data.minedCoins || 0) + 5;
+    data.lastClaimTime = now;
+    saveData();
+    updateUI();
+    $('timer').innerText = '✅ Mined!';
+    $('mineBtn').disabled = true;
+    setTimeout(updateUI, 1000);
+}
 
-        // ============================================================
-        // 🧠 APP STATE
-        // ============================================================
-        var userData = null;
-        var COOLDOWN_MS = 3 * 60 * 60 * 1000;
-        var TASK_WAIT_MS = 5 * 60 * 1000;
+// ============================================
+// STEP 6: Welcome function
+// ============================================
+function claimWelcome() {
+    log('🎁 Welcome clicked');
+    if (!data || data.hasClaimedWelcome) return;
+    data.balance = (data.balance || 0) + 20;
+    data.hasClaimedWelcome = true;
+    saveData();
+    updateUI();
+}
 
-        // ============================================================
-        // 🎯 DOM REFS
-        // ============================================================
-        function $(id) { return document.getElementById(id); }
+// ============================================
+// STEP 7: Attach events
+// ============================================
+$('mineBtn').onclick = mine;
+$('wbtn').onclick = claimWelcome;
 
-        var mineBtn = $('mineBtn');
-        var mineSpin = $('mineSpin');
-        var cooldownTimer = $('cooldownTimer');
-        var displayBalance = $('displayBalance');
-        var statMined = $('statMined');
-        var statLevel = $('statLevel');
-        var statRefs = $('statRefs');
-        var levelTag = $('levelTag');
-        var missedDaysDisplay = $('missedDaysDisplay');
-        var levelProgress = $('levelProgress');
-        var nextLevelText = $('nextLevelText');
-        var welcomeBonusMsg = $('welcomeBonusMsg');
-        var claimWelcomeBtn = $('claimWelcomeBtn');
-        var taskList = $('taskList');
-        var refLinkDisplay = $('refLinkDisplay');
-        var copyRefBtn = $('copyRefBtn');
-        var shareRefBtn = $('shareRefBtn');
-        var refCount = $('refCount');
-        var refEarnings = $('refEarnings');
-        var refCap = $('refCap');
-        var referralListContainer = $('referralListContainer');
-        var walletSolana = $('walletSolana');
-        var walletBase = $('walletBase');
-        var saveWalletBtn = $('saveWalletBtn');
-        var walletStatus = $('walletStatus');
-        var profileName = $('profileName');
-        var profileLevelTag = $('profileLevelTag');
-        var profileTgId = $('profileTgId');
-        var profileMined = $('profileMined');
-        var profileBalance = $('profileBalance');
-        var profileBurned = $('profileBurned');
-        var profileMissed = $('profileMissed');
-        var profileRefs = $('profileRefs');
-        var profileLevel = $('profileLevel');
-
-        // ================
+// ============================================
+// STEP 8: START
+// ============================================
+if (db) {
+    loadData();
+    log('✅ App ready', 'success');
+} else {
+    log('❌ Firebase not ready', 'error');
+    alert('Firebase not initialized. Check Authorized Domains.');
+}
+</script>
+</body>
+    </html>
