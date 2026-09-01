@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🐶 Little Doge - LDOGE</title>
+    <title>🐶 Little Doge</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js">
     </script>
     <style>
-        /* ===== FULL CSS (same as before, but clean) ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
         body {
             background: #0b0e11;
@@ -28,26 +27,13 @@
             align-items: center;
             gap: 14px;
             border-bottom: 2px solid #f0b90b;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
         .header .logo {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: #000;
-            border: 2px solid #f0b90b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
+            font-size: 28px;
         }
         .header h1 {
             font-size: 20px;
-            background: linear-gradient(135deg, #f0b90b, #ffd700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #f0b90b;
         }
         .header .tag {
             margin-left: auto;
@@ -66,10 +52,9 @@
             background: #1e2329;
             display: flex;
             justify-content: space-around;
-            padding: 6px 0 10px;
+            padding: 8px 0 12px;
             border-top: 1px solid #2b3139;
             z-index: 200;
-            overflow-x: auto;
         }
         .nav-item {
             display: flex;
@@ -78,15 +63,14 @@
             background: transparent;
             border: none;
             color: #848e9c;
-            font-size: 9px;
+            font-size: 10px;
             gap: 2px;
-            padding: 4px 8px;
+            padding: 4px 12px;
             cursor: pointer;
             font-weight: 600;
-            flex-shrink: 0;
         }
         .nav-item .icon {
-            font-size: 20px;
+            font-size: 22px;
         }
         .nav-item.active {
             color: #f0b90b;
@@ -135,18 +119,8 @@
             opacity: 0.4;
             cursor: not-allowed;
         }
-        .glow-btn .spin {
-            display: inline-block;
-            animation: spin 2s linear infinite;
-        }
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
         .btn-green {
             background: #3ddc84;
-            box-shadow: 0 0 30px #3ddc8433;
             color: #000;
         }
         .stat-grid {
@@ -230,19 +204,11 @@
         .task-info p {
             font-size: 11px;
             color: #848e9c;
-            word-break: break-all;
         }
         .task-info a {
             color: #f0b90b;
             font-size: 10px;
-            text-decoration: none;
             display: block;
-            margin-top: 2px;
-        }
-        .task-info .status-msg {
-            font-size: 10px;
-            display: block;
-            margin-top: 2px;
         }
         .task-btn {
             background: #13181d;
@@ -253,7 +219,6 @@
             font-weight: 700;
             font-size: 12px;
             cursor: pointer;
-            flex-shrink: 0;
         }
         .task-btn.done {
             background: #1f8b4c;
@@ -265,21 +230,10 @@
             background: #ff884422;
             color: #ff8844;
             cursor: default;
-            border: 1px solid #ff884466;
         }
         .task-btn.ready {
             background: #3ddc84;
             color: #000;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
         }
         .ref-box {
             background: #13181d;
@@ -372,20 +326,20 @@
             font-size: 36px;
             font-weight: 900;
         }
-        .debug-log {
+        .debug-box {
             background: #13181d;
-            padding: 10px;
+            padding: 10px 14px;
             border-radius: 10px;
             font-size: 12px;
             margin-bottom: 12px;
             border-left: 3px solid #f0b90b;
-            max-height: 100px;
-            overflow-y: auto;
-            white-space: pre-wrap;
             font-family: monospace;
             color: #3ddc84;
+            max-height: 80px;
+            overflow-y: auto;
+            white-space: pre-wrap;
         }
-        .debug-error {
+        .debug-box.error {
             color: #ff4444;
             border-left-color: #ff4444;
         }
@@ -396,13 +350,6 @@
             .stat-box .num {
                 font-size: 16px;
             }
-            .nav-item {
-                font-size: 8px;
-                padding: 4px 4px;
-            }
-            .nav-item .icon {
-                font-size: 18px;
-            }
         }
     </style>
 </head>
@@ -411,11 +358,11 @@
     <div class="header">
         <div class="logo">🐶</div>
         <h1>$LDOGE</h1>
-        <span class="tag">🔴 LIVE</span>
+        <span class="tag">⛏️ MINE</span>
     </div>
 
     <div style="padding: 10px 16px 0;">
-        <div id="debugLog" class="debug-log">⏳ Initializing...</div>
+        <div id="debugBox" class="debug-box">⏳ Starting...</div>
     </div>
 
     <!-- HOME -->
@@ -426,7 +373,7 @@
                 <div class="big-num" id="displayBalance">0.00</div>
                 <div style="color:#848e9c;font-size:13px;">$LDOGE Balance</div>
             </div>
-            <button class="glow-btn" id="mineBtn"><span class="spin">⛏️</span> Mine Now (5 Coins)</button>
+            <button class="glow-btn" id="mineBtn"><span id="mineSpin" style="display:inline-block;">⛏️</span> Mine Now (5 Coins)</button>
             <div id="cooldownTimer" style="text-align:center;margin-top:12px;color:#848e9c;font-size:13px;">✅ Ready</div>
             <div class="stat-grid">
                 <div class="stat-box"><div class="num" id="statMined">0</div><div class="label">Mined</div></div>
@@ -451,7 +398,7 @@
     <div id="pageTasks" class="page">
         <div class="card">
             <div class="card-title">📋 Social Tasks</div>
-            <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong> for verification, then claim <strong>5 $LDOGE</strong> (once).</p>
+            <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong>, then claim <strong>5 $LDOGE</strong>.</p>
             <div id="taskList"></div>
         </div>
     </div>
@@ -459,7 +406,7 @@
     <!-- REFERRAL -->
     <div id="pageReferral" class="page">
         <div class="card card-glow">
-            <div class="card-title">👥 Invite</div>
+            <div class="card-title">👥 Invite & Earn</div>
             <p class="text-muted">10% of friend's mining + 10 coins per invite (50% cap)</p>
             <div class="stat-grid" style="margin-top:14px;">
                 <div class="stat-box"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
@@ -473,7 +420,7 @@
             <button class="glow-btn" id="shareRefBtn" style="margin-top:14px;background:#1a8cd8;box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
         </div>
         <div class="card">
-            <div class="card-title">👫 Friends</div>
+            <div class="card-title">👫 Your Friends</div>
             <div id="referralListContainer"><p class="text-muted">No referrals yet.</p></div>
         </div>
     </div>
@@ -481,8 +428,8 @@
     <!-- WALLET -->
     <div id="pageWallet" class="page">
         <div class="card">
-            <div class="card-title">💳 Wallet</div>
-            <div class="wallet-warn">⚠️ Only personal wallets allowed.</div>
+            <div class="card-title">💳 Wallet Setup</div>
+            <div class="wallet-warn">⚠️ Only personal wallets allowed (no exchanges).</div>
             <label style="font-size:13px;font-weight:600;">🟣 Solana</label>
             <input type="text" class="wallet-input" id="walletSolana" placeholder="Base58 address">
             <label style="font-size:13px;font-weight:600;margin-top:6px;">🔵 Base / EVM</label>
@@ -499,18 +446,18 @@
             <h2 id="profileName">User</h2>
             <span id="profileLevelTag" class="level-badge">Silver</span>
             <div style="margin-top:16px;background:#13181d;padding:16px;border-radius:16px;text-align:left;">
-                <div class="profile-row"><span class="lbl">🆔 ID</span><span id="profileTgId">-</span></div>
-                <div class="profile-row"><span class="lbl">⛏️ Mined</span><span id="profileMined">0</span></div>
-                <div class="profile-row"><span class="lbl">💰 Balance</span><span class="text-gold" id="profileBalance">0</span></div>
-                <div class="profile-row"><span class="lbl">🔥 Burned</span><span class="text-red" id="profileBurned">0</span></div>
-                <div class="profile-row"><span class="lbl">📅 Missed Days</span><span id="profileMissed">0</span></div>
-                <div class="profile-row"><span class="lbl">👥 Referrals</span><span id="profileRefs">0</span></div>
-                <div class="profile-row" style="border:none;"><span class="lbl">🏅 Level</span><span id="profileLevel">Silver</span></div>
+                <div class="profile-row"><span class="lbl">ID</span><span id="profileTgId">-</span></div>
+                <div class="profile-row"><span class="lbl">Mined</span><span id="profileMined">0</span></div>
+                <div class="profile-row"><span class="lbl">Balance</span><span class="text-gold" id="profileBalance">0</span></div>
+                <div class="profile-row"><span class="lbl">Burned</span><span class="text-red" id="profileBurned">0</span></div>
+                <div class="profile-row"><span class="lbl">Missed Days</span><span id="profileMissed">0</span></div>
+                <div class="profile-row"><span class="lbl">Referrals</span><span id="profileRefs">0</span></div>
+                <div class="profile-row" style="border:none;"><span class="lbl">Level</span><span id="profileLevel">Silver</span></div>
             </div>
         </div>
     </div>
 
-    <!-- NAV (5 TABS) -->
+    <!-- NAV -->
     <div class="bottom-nav">
         <button class="nav-item active" data-page="pageHome"><span class="icon">🏠</span> Home</button>
         <button class="nav-item" data-page="pageTasks"><span class="icon">📋</span> Tasks</button>
@@ -521,23 +468,19 @@
 
     <script>
         // ============================================================
-        // LOG FUNCTION (MUST BE FIRST)
+        // ✅ DEBUG FUNCTION
         // ============================================================
-        function logMsg(msg, isError) {
-            var el = document.getElementById('debugLog');
-            if (!el) {
-                console.log(msg);
-                return;
-            }
-            var time = new Date().toLocaleTimeString();
-            el.innerText = '[' + time + '] ' + msg;
-            el.className = 'debug-log' + (isError ? ' debug-error' : '');
-            el.style.color = isError ? '#ff4444' : '#3ddc84';
+        function debug(msg, isError) {
+            var el = document.getElementById('debugBox');
+            if (!el) return;
+            var t = new Date().toLocaleTimeString();
+            el.innerText = '[' + t + '] ' + msg;
+            el.className = 'debug-box' + (isError ? ' error' : '');
             console.log(msg);
         }
 
         // ============================================================
-        // FIREBASE CONFIG
+        // 🔥 FIREBASE
         // ============================================================
         var firebaseConfig = {
             apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
@@ -550,20 +493,17 @@
         };
 
         var db = null;
-        var firebaseReady = false;
-
         try {
             var app = firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-            firebaseReady = true;
-            logMsg("✅ Firebase connected!");
+            debug("✅ Firebase connected!");
         } catch (e) {
-            logMsg("❌ Firebase init error: " + e.message, true);
-            alert("Firebase init error: " + e.message);
+            debug("❌ Firebase init error: " + e.message, true);
+            alert("Firebase error: " + e.message);
         }
 
         // ============================================================
-        // TELEGRAM
+        // 📱 TELEGRAM
         // ============================================================
         var tg = window.Telegram?.WebApp;
         var tgUser = null;
@@ -575,15 +515,57 @@
         }
         if (!tgUser) {
             tgUser = { id: 123456789, first_name: "Test", username: "test" };
-            logMsg("⚠️ Running in browser (test mode) - Use Telegram for real users", true);
+            debug("⚠️ Browser test mode", true);
         }
 
         var userId = tgUser.id.toString();
         var userRef = db ? db.ref('users/' + userId) : null;
 
         // ============================================================
-        // APP STATE
+        // 🧠 APP STATE
         // ============================================================
         var userData = null;
         var COOLDOWN_MS = 3 * 60 * 60 * 1000;
-   
+        var TASK_WAIT_MS = 5 * 60 * 1000;
+
+        // ============================================================
+        // 🎯 DOM REFS
+        // ============================================================
+        function $(id) { return document.getElementById(id); }
+
+        var mineBtn = $('mineBtn');
+        var mineSpin = $('mineSpin');
+        var cooldownTimer = $('cooldownTimer');
+        var displayBalance = $('displayBalance');
+        var statMined = $('statMined');
+        var statLevel = $('statLevel');
+        var statRefs = $('statRefs');
+        var levelTag = $('levelTag');
+        var missedDaysDisplay = $('missedDaysDisplay');
+        var levelProgress = $('levelProgress');
+        var nextLevelText = $('nextLevelText');
+        var welcomeBonusMsg = $('welcomeBonusMsg');
+        var claimWelcomeBtn = $('claimWelcomeBtn');
+        var taskList = $('taskList');
+        var refLinkDisplay = $('refLinkDisplay');
+        var copyRefBtn = $('copyRefBtn');
+        var shareRefBtn = $('shareRefBtn');
+        var refCount = $('refCount');
+        var refEarnings = $('refEarnings');
+        var refCap = $('refCap');
+        var referralListContainer = $('referralListContainer');
+        var walletSolana = $('walletSolana');
+        var walletBase = $('walletBase');
+        var saveWalletBtn = $('saveWalletBtn');
+        var walletStatus = $('walletStatus');
+        var profileName = $('profileName');
+        var profileLevelTag = $('profileLevelTag');
+        var profileTgId = $('profileTgId');
+        var profileMined = $('profileMined');
+        var profileBalance = $('profileBalance');
+        var profileBurned = $('profileBurned');
+        var profileMissed = $('profileMissed');
+        var profileRefs = $('profileRefs');
+        var profileLevel = $('profileLevel');
+
+        // ================
