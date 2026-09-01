@@ -217,7 +217,7 @@
             color: #848e9c;
             font-size: 9px;
             gap: 2px;
-            padding: 4px 8px;
+            padding: 4px 12px;
             cursor: pointer;
             font-weight: 600;
         }
@@ -233,64 +233,6 @@
         }
         .page.active {
             display: block;
-        }
-        .task-item {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #2b3139;
-        }
-        .task-item:last-child {
-            border-bottom: none;
-        }
-        .task-info {
-            flex: 1;
-            min-width: 140px;
-        }
-        .task-info h4 {
-            font-size: 14px;
-        }
-        .task-info p {
-            font-size: 11px;
-            color: #848e9c;
-        }
-        .task-info a {
-            color: #f0b90b;
-            font-size: 10px;
-            display: block;
-            margin-top: 2px;
-        }
-        .task-info .status-msg {
-            font-size: 10px;
-            display: block;
-            margin-top: 2px;
-        }
-        .task-btn {
-            background: #13181d;
-            border: none;
-            color: #eaecef;
-            padding: 6px 16px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .task-btn.done {
-            background: #1f8b4c;
-            color: #fff;
-            opacity: 0.6;
-            cursor: default;
-        }
-        .task-btn.pending {
-            background: #ff884422;
-            color: #ff8844;
-            cursor: default;
-        }
-        .task-btn.ready {
-            background: #3ddc84;
-            color: #000;
         }
         .ref-box {
             background: #13181d;
@@ -313,41 +255,27 @@
             color: #000;
             cursor: pointer;
         }
-        .wallet-input {
+        .invite-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .invite-stat-box {
             background: #13181d;
-            border: 1px solid #2b3139;
-            border-radius: 12px;
             padding: 14px;
-            width: 100%;
-            color: #fff;
-            font-size: 14px;
-            margin-bottom: 12px;
-            outline: none;
+            border-radius: 12px;
+            text-align: center;
         }
-        .wallet-input:focus {
-            border-color: #f0b90b;
+        .invite-stat-box .num {
+            font-size: 22px;
+            font-weight: 800;
+            color: #f0b90b;
         }
-        .wallet-warn {
-            background: #ff444422;
-            border-left: 3px solid #ff4444;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #ff6666;
-            margin-bottom: 14px;
-        }
-        .profile-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #2b3139;
-            font-size: 13px;
-        }
-        .profile-row:last-child {
-            border-bottom: none;
-        }
-        .profile-row .lbl {
+        .invite-stat-box .label {
+            font-size: 10px;
             color: #848e9c;
+            margin-top: 4px;
         }
         @media (max-width: 420px) {
             .stat-grid {
@@ -369,7 +297,7 @@
 
     <div id="debugBox" class="debug-box">⏳ Starting...</div>
 
-    <!-- HOME -->
+    <!-- ===== HOME / DASHBOARD ===== -->
     <div id="pageHome" class="page active">
         <div class="card card-glow">
             <div class="card-title">💰 Dashboard</div>
@@ -398,81 +326,45 @@
         </div>
     </div>
 
-    <!-- TASKS -->
-    <div id="pageTasks" class="page">
-        <div class="card">
-            <div class="card-title">📋 Social Tasks</div>
-            <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong>, then claim <strong>5 $LDOGE</strong>.</p>
-            <div id="taskList"></div>
-        </div>
-    </div>
-
-    <!-- REFERRAL -->
+    <!-- ===== REFERRAL / INVITE ===== -->
     <div id="pageReferral" class="page">
         <div class="card card-glow">
             <div class="card-title">👥 Invite & Earn</div>
-            <p class="text-muted">10% of friend's mining + 10 coins per invite (50% cap)</p>
-            <div class="stat-grid" style="margin-top:14px;">
-                <div class="stat-box"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
-                <div class="stat-box"><div class="num" id="refEarnings">0.00</div><div class="label">Earned</div></div>
-                <div class="stat-box"><div class="num" id="refCap">0%</div><div class="label">Cap</div></div>
+            <p class="text-muted">Share your link and earn <strong>10%</strong> of your friend's mining + <strong>10 coins</strong> per invite (max 50% of your mined).</p>
+
+            <div class="invite-stats">
+                <div class="invite-stat-box">
+                    <div class="num" id="refCount">0</div>
+                    <div class="label">Total Invites</div>
+                </div>
+                <div class="invite-stat-box">
+                    <div class="num" id="refEarnings">0.00</div>
+                    <div class="label">Earned Coins</div>
+                </div>
             </div>
+
             <div class="ref-box">
                 <span id="refLinkDisplay">Loading...</span>
                 <button class="copy-btn" id="copyRefBtn">Copy</button>
             </div>
-            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px;background:#1a8cd8;box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
+            <button class="glow-btn" id="shareRefBtn" style="margin-top:14px;background:#1a8cd8;box-shadow:0 0 30px #1a8cd866;">📤 Share with Friends</button>
         </div>
+
         <div class="card">
             <div class="card-title">👫 Your Friends</div>
-            <div id="referralListContainer"><p class="text-muted">No referrals yet.</p></div>
+            <div id="referralListContainer"><p class="text-muted">No referrals yet. Share your link!</p></div>
         </div>
     </div>
 
-    <!-- WALLET -->
-    <div id="pageWallet" class="page">
-        <div class="card">
-            <div class="card-title">💳 Wallet</div>
-            <div class="wallet-warn">⚠️ Only personal wallets allowed (no exchanges).</div>
-            <label style="font-size:13px;font-weight:600;">🟣 Solana</label>
-            <input type="text" class="wallet-input" id="walletSolana" placeholder="Base58 address">
-            <label style="font-size:13px;font-weight:600;margin-top:6px;">🔵 Base / EVM</label>
-            <input type="text" class="wallet-input" id="walletBase" placeholder="0x...">
-            <button class="glow-btn" id="saveWalletBtn" style="background:#2b3139;box-shadow:none;">💾 Save</button>
-            <div id="walletStatus" style="margin-top:12px;color:#848e9c;"></div>
-        </div>
-    </div>
-
-    <!-- PROFILE -->
-    <div id="pageProfile" class="page">
-        <div class="card" style="text-align:center;">
-            <div style="font-size:56px;">🐶</div>
-            <h2 id="profileName">User</h2>
-            <span id="profileLevelTag" class="level-badge">Silver</span>
-            <div style="margin-top:16px;background:#13181d;padding:16px;border-radius:16px;text-align:left;">
-                <div class="profile-row"><span class="lbl">🆔 ID</span><span id="profileTgId">-</span></div>
-                <div class="profile-row"><span class="lbl">⛏️ Mined</span><span id="profileMined">0</span></div>
-                <div class="profile-row"><span class="lbl">💰 Balance</span><span class="text-gold" id="profileBalance">0</span></div>
-                <div class="profile-row"><span class="lbl">🔥 Burned</span><span class="text-red" id="profileBurned">0</span></div>
-                <div class="profile-row"><span class="lbl">📅 Missed Days</span><span id="profileMissed">0</span></div>
-                <div class="profile-row"><span class="lbl">👥 Referrals</span><span id="profileRefs">0</span></div>
-                <div class="profile-row" style="border:none;"><span class="lbl">🏅 Level</span><span id="profileLevel">Silver</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- NAV (NO ADMIN) -->
+    <!-- ===== NAV (2 tabs only) ===== -->
     <div class="bottom-nav">
         <button class="nav-item active" data-page="pageHome"><span class="icon">🏠</span> Home</button>
-        <button class="nav-item" data-page="pageTasks"><span class="icon">📋</span> Tasks</button>
         <button class="nav-item" data-page="pageReferral"><span class="icon">👥</span> Refer</button>
-        <button class="nav-item" data-page="pageWallet"><span class="icon">💳</span> Wallet</button>
-        <button class="nav-item" data-page="pageProfile"><span class="icon">👤</span> Profile</button>
     </div>
 
     <script>
         // ============================================
-        // 1. DEBUG FUNCTION (First)
+        // 1. DEBUG FUNCTION
         // ============================================
         function log(msg, isError) {
             var el = document.getElementById('debugBox');
@@ -483,7 +375,7 @@
             console.log(msg);
         }
 
-        log('🚀 Script started');
+        log('🚀 Starting app...');
 
         // ============================================
         // 2. FIREBASE
@@ -504,7 +396,7 @@
             db = firebase.database();
             log('✅ Firebase connected!');
         } catch (e) {
-            log('❌ Firebase init error: ' + e.message, true);
+            log('❌ Firebase error: ' + e.message, true);
             alert('Firebase error: ' + e.message);
         }
 
@@ -525,8 +417,6 @@
         }
 
         var userId = tgUser.id.toString();
-        log('👤 User ID: ' + userId);
-
         var userRef = db ? db.ref('users/' + userId) : null;
 
         // ============================================
@@ -534,7 +424,6 @@
         // ============================================
         var userData = null;
         var COOLDOWN_MS = 3 * 60 * 60 * 1000;
-        var TASK_WAIT_MS = 5 * 60 * 1000;
 
         // ============================================
         // 5. DOM HELPERS
@@ -577,4 +466,112 @@
         // ============================================
         // 7. UPDATE UI
         // ============================================
-        function upd
+        function updateUI() {
+            if (!userData) return;
+            var d = userData;
+            var balance = d.balance || 0;
+            var mined = d.minedCoins || 0;
+            var levelObj = getLevel(mined);
+            var next = getNextLevel(mined);
+
+            $('balance').innerText = balance.toFixed(2);
+            $('statMined').innerText = mined;
+            $('statLevel').innerText = levelObj.name;
+            $('statRefs').innerText = d.referralCount || 0;
+
+            $('levelTag').innerText = levelObj.name;
+            $('levelTag').className = 'level-badge' + (levelObj.key !== 'silver' ? ' ' + levelObj.key : '');
+            $('missedDaysDisplay').innerText = '🔥 ' + (d.missedDays || 0) + ' days missed';
+
+            var prog = getProgress(mined);
+            $('levelProgress').style.width = prog + '%';
+            if (next) $('nextLevelText').innerText = 'Next: ' + next.name + ' (' + next.threshold + ' mined)';
+            else $('nextLevelText').innerText = '🏆 Max Level!';
+
+            // Welcome bonus
+            if (d.hasClaimedWelcome) {
+                $('welcomeBtn').disabled = true;
+                $('welcomeBtn').innerText = '✅ Claimed';
+                $('welcomeMsg').innerText = 'Welcome bonus claimed!';
+            } else {
+                $('welcomeBtn').disabled = false;
+                $('welcomeBtn').innerText = '🎁 Claim 20 Coins';
+                $('welcomeMsg').innerText = 'Claim your 20 $LDOGE welcome bonus!';
+            }
+
+            // Referral stats
+            $('refCount').innerText = d.referralCount || 0;
+            $('refEarnings').innerText = (d.referralEarnings || 0).toFixed(2);
+
+            // Referral link
+            var link = 'https://t.me/Littledogecoinbot?start=ref_' + userId;
+            $('refLinkDisplay').innerText = link;
+
+            checkCooldown();
+            loadReferralList();
+            log('✅ UI updated');
+        }
+
+        // ============================================
+        // 8. COOLDOWN
+        // ============================================
+        function checkCooldown() {
+            if (!userData) return;
+            var last = userData.lastClaimTime || 0;
+            var diff = Date.now() - last;
+            if (diff >= COOLDOWN_MS) {
+                $('mineBtn').disabled = false;
+                $('timer').innerText = '✅ Ready';
+            } else {
+                $('mineBtn').disabled = true;
+                var rem = COOLDOWN_MS - diff;
+                var h = Math.floor(rem / 3600000);
+                var m = Math.floor((rem % 3600000) / 60000);
+                var s = Math.floor((rem % 60000) / 1000);
+                $('timer').innerText = '⏳ ' + h + 'h ' + m + 'm ' + s + 's';
+                setTimeout(checkCooldown, 1000);
+            }
+        }
+
+        // ============================================
+        // 9. BURN
+        // ============================================
+        function checkBurn() {
+            if (!userData) return;
+            var today = new Date().toISOString().split('T')[0];
+            var lastLogin = userData.lastLoginDate || today;
+            if (lastLogin !== today) {
+                var diff = Math.floor((new Date(today) - new Date(lastLogin)) / 86400000);
+                if (diff > 0) {
+                    var burnAmount = diff * 10;
+                    var actualBurn = Math.min(burnAmount, userData.balance || 0);
+                    userData.balance = (userData.balance || 0) - actualBurn;
+                    userData.totalBurned = (userData.totalBurned || 0) + actualBurn;
+                    userData.missedDays = (userData.missedDays || 0) + diff;
+                    userData.lastLoginDate = today;
+                    saveData();
+                    log('🔥 Burned ' + actualBurn + ' coins for ' + diff + ' days');
+                } else {
+                    userData.lastLoginDate = today;
+                    saveData();
+                }
+            }
+        }
+
+        // ============================================
+        // 10. SAVE
+        // ============================================
+        function saveData() {
+            if (!userData || !userRef) return;
+            if (userId === "123456789") {
+                try { localStorage.setItem('ldoge_test', JSON.stringify(userData)); } catch (e) {}
+                return;
+            }
+            userRef.set(userData).then(function() {
+                log('✅ Data saved');
+            }).catch(function(e) {
+                log('❌ Save error: ' + e.message, true);
+            });
+        }
+
+        // ===============================
