@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐶 LDOGE</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">🐶</div>
+    <h1>$LDOGE</h1>
+    <span class="tag">⛏️ LIVE</span>
+</div>
+
+<div id="debugBox" class="debug-box">⏳ Starting...</div>
+
+<!-- ===== HOME ===== -->
+<div id="pageHome" class="page active">
+    <div class="card card-glow">
+        <div class="card-title">💰 Dashboard</div>
+        <div class="text-center">
+            <div class="big-num" id="balance">0.00</div>
+            <div style="color:#848e9c;font-size:13px;">$LDOGE Balance</div>
+        </div>
+        <button class="glow-btn" id="mineBtn">⛏️ Mine Now (5 Coins)</button>
+        <div id="timer" style="text-align:center;margin-top:12px;color:#848e9c;font-size:13px;">✅ Ready</div>
+        <div class="stat-grid">
+            <div class="stat-box"><div class="num" id="statMined">0</div><div class="label">Mined</div></div>
+            <div class="stat-box"><div class="num" id="statLevel">Silver</div><div class="label">Level</div></div>
+            <div class="stat-box"><div class="num" id="statRefs">0</div><div class="label">Referrals</div></div>
+        </div>
+        <div class="flex-between mt-1">
+            <span id="levelTag" class="level-badge">Silver</span>
+            <span id="missedDaysDisplay" class="missed-badge">🔥 0 days missed</span>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" id="levelProgress"></div></div>
+        <div style="font-size:11px;color:#848e9c;" id="nextLevelText">Next: Bronze (1000 mined)</div>
+    </div>
+    <div class="card" style="border-color:#3ddc8444;">
+        <div class="card-title">🎁 Welcome Bonus</div>
+        <p class="text-muted" id="welcomeMsg">Claim your 20 $LDOGE welcome bonus!</p>
+        <button class="glow-btn btn-green" id="welcomeBtn">🎁 Claim 20 Coins</button>
+    </div>
+</div>
+
+<!-- ===== TASKS ===== -->
+<div id="pageTasks" class="page">
+    <div class="card">
+        <div class="card-title">📋 Social Tasks</div>
+        <p class="text-muted" style="margin-bottom:16px;">Click task, visit our socials, wait <strong>5 mins</strong>, then claim <strong>5 $LDOGE</strong>.</p>
+        <div id="taskList"></div>
+    </div>
+</div>
+
+<!-- ===== REFERRAL ===== -->
+<div id="pageReferral" class="page">
+    <div class="card card-glow">
+        <div class="card-title">👥 Invite & Earn</div>
+        <p class="text-muted">10% of friend's mining + 10 coins per invite (50% cap)</p>
+        <div class="stat-grid" style="margin-top:14px;">
+            <div class="stat-box"><div class="num" id="refCount">0</div><div class="label">Invites</div></div>
+            <div class="stat-box"><div class="num" id="refEarnings">0.00</div><div class="label">Earned</div></div>
+            <div class="stat-box"><div class="num" id="refCap">0%</div><div class="label">Cap</div></div>
+        </div>
+        <div class="ref-box">
+            <span id="refLinkDisplay">Loading...</span>
+            <button class="copy-btn" id="copyRefBtn">Copy</button>
+        </div>
+        <button class="glow-btn" id="shareRefBtn" style="margin-top:14px;background:#1a8cd8;box-shadow:0 0 30px #1a8cd866;">📤 Share Link</button>
+    </div>
+    <div class="card">
+        <div class="card-title">👫 Your Friends</div>
+        <div id="referralListContainer"><p class="text-muted">No referrals yet.</p></div>
+    </div>
+</div>
+
+<!-- ===== WALLET ===== -->
+<div id="pageWallet" class="page">
+    <div class="card">
+        <div class="card-title">💳 Wallet</div>
+        <div class="wallet-warn">⚠️ Only personal wallets allowed (no exchanges).</div>
+        <label style="font-size:13px;font-weight:600;">🟣 Solana</label>
+        <input type="text" class="wallet-input" id="walletSolana" placeholder="Base58 address">
+        <label style="font-size:13px;font-weight:600;margin-top:6px;">🔵 Base / EVM</label>
+        <input type="text" class="wallet-input" id="walletBase" placeholder="0x...">
+        <button class="glow-btn" id="saveWalletBtn" style="background:#2b3139;box-shadow:none;">💾 Save</button>
+        <div id="walletStatus" style="margin-top:12px;color:#848e9c;"></div>
+    </div>
+</div>
+
+<!-- ===== PROFILE ===== -->
+<div id="pageProfile" class="page">
+    <div class="card" style="text-align:center;">
+        <div style="font-size:56px;">🐶</div>
+        <h2 id="profileName">User</h2>
+        <span id="profileLevelTag" class="level-badge">Silver</span>
+        <div style="margin-top:16px;background:#13181d;padding:16px;border-radius:16px;text-align:left;">
+            <div class="profile-row"><span class="lbl">🆔 ID</span><span id="profileTgId">-</span></div>
+            <div class="profile-row"><span class="lbl">⛏️ Mined</span><span id="profileMined">0</span></div>
+            <div class="profile-row"><span class="lbl">💰 Balance</span><span class="text-gold" id="profileBalance">0</span></div>
+            <div class="profile-row"><span class="lbl">🔥 Burned</span><span class="text-red" id="profileBurned">0</span></div>
+            <div class="profile-row"><span class="lbl">📅 Missed Days</span><span id="profileMissed">0</span></div>
+            <div class="profile-row"><span class="lbl">👥 Referrals</span><span id="profileRefs">0</span></div>
+            <div class="profile-row" style="border:none;"><span class="lbl">🏅 Level</span><span id="profileLevel">Silver</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== ADMIN ===== -->
+<div id="pageAdmin" class="page">
+    <div class="card card-glow">
+        <div class="card-title">📊 Admin Panel</div>
+        <div class="stat-grid">
+            <div class="stat-box"><div class="num" id="adminUsers">0</div><div class="label">Users</div></div>
+            <div class="stat-box"><div class="num" id="adminMined">0</div><div class="label">Total Mined</div></div>
+            <div class="stat-box"><div class="num" id="adminBalance">0</div><div class="label">Total Balance</div></div>
+        </div>
+        <button class="glow-btn" id="refreshAdminBtn" style="background:#2b3139;box-shadow:none;">🔄 Refresh</button>
+        <div style="margin-top:16px;max-height:350px;overflow-y:auto;" id="adminUserList"><p class="text-muted">Loading...</p></div>
+    </div>
+</div>
+
+<!-- ===== NAV ===== -->
+<div class="bottom-nav">
+    <button class="nav-item active" data-page="pageHome"><span class="icon">🏠</span> Home</button>
+    <button class="nav-item" data-page="pageTasks"><span class="icon">📋</span> Tasks</button>
+    <button class="nav-item" data-page="pageReferral"><span class="icon">👥</span> Refer</button>
+    <button class="nav-item" data-page="pageWallet"><span class="icon">💳</span> Wallet</button>
+    <button class="nav-item" data-page="pageProfile"><span class="icon">👤</span> Profile</button>
+    <button class="nav-item" data-page="pageAdmin"><span class="icon">📊</span> Admin</button>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+              </html>
