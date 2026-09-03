@@ -3,161 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>LDOGE Mining</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>LITTLE DOGE - Mining App</title>
+    
+    <!-- FIREBASE SDK v9 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    
+    <!-- TELEGRAM SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
-            color: #fff;
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #ffd700;
+            --dark-bg: #0f0f1e;
+            --card-bg: #1a1a2e;
+            --text: #ffffff;
+            --text-dim: #b0b0c0;
+            --green: #00ff88;
+            --red: #ff6b6b;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, #16213e 100%);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow-x: hidden;
         }
         
+        body {
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 80px;
+        }
+        
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .main::-webkit-scrollbar {
+            width: 0;
+        }
+        
         .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 10px;
-            padding-bottom: 100px;
+            max-width: 100%;
+            padding: 12px;
         }
         
+        /* ============ HEADER ============ */
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 20px;
+            padding: 24px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
-        .logo {
-            font-size: 50px;
-            margin-bottom: 10px;
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
         }
         
-        .balance {
+        .logo-section {
             font-size: 40px;
-            font-weight: bold;
-            color: #ffd700;
-            margin: 10px 0;
         }
         
-        .level-info {
+        .header-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .header-subtitle {
             font-size: 12px;
-            color: rgba(255,255,255,0.8);
+            opacity: 0.9;
         }
         
+        .balance-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+        
+        .balance-label {
+            font-size: 11px;
+            opacity: 0.85;
+            margin-bottom: 6px;
+        }
+        
+        .balance-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 6px;
+        }
+        
+        .level-display {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        /* ============ CARD ============ */
         .card {
-            background: #1a1a2e;
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 15px;
-            padding: 15px;
+            background: var(--card-bg);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            padding: 16px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
         
         .card-title {
             font-size: 14px;
-            font-weight: 600;
-            color: #ffd700;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* ============ MINING CARD ============ */
+        .mining-card {
+            text-align: center;
+        }
+        
+        .mining-status {
+            font-size: 12px;
+            color: var(--text-dim);
             margin-bottom: 12px;
         }
         
-        .countdown {
-            font-size: 50px;
-            font-weight: bold;
-            text-align: center;
-            color: #ffd700;
-            margin: 15px 0;
-            font-family: monospace;
+        .countdown-big {
+            font-size: 56px;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+            margin: 16px 0;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            letter-spacing: 2px;
         }
         
-        .pending {
-            background: rgba(102, 126, 234, 0.2);
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            margin: 10px 0;
-            font-size: 14px;
+        .pending-box {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 14px;
+            margin: 14px 0;
         }
         
-        .pending-amount {
-            font-size: 20px;
-            font-weight: bold;
-            color: #ffd700;
+        .pending-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
         }
         
+        .pending-value {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+        }
+        
+        .multiplier-text {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-top: 6px;
+        }
+        
+        /* ============ BUTTONS ============ */
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 10px;
+            transition: all 0.3s ease;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
         }
         
         .btn-claim {
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            background: linear-gradient(135deg, var(--accent) 0%, #ffed4e 100%);
             color: #000;
-            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
-        }
-        
-        .btn-claim:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.25);
         }
         
         .btn-claim:active:not(:disabled) {
+            transform: scale(0.97);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.15);
+        }
+        
+        .btn-claim:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn-primary:active {
+            background: var(--secondary);
             transform: scale(0.98);
         }
         
-        .btn-secondary {
-            background: #667eea;
-            color: white;
+        .btn-small {
+            padding: 10px;
+            font-size: 12px;
+            width: auto;
+            display: inline-block;
+            margin-right: 8px;
+            margin-bottom: 8px;
         }
         
-        .btn-secondary:active {
-            background: #764ba2;
-        }
-        
-        .stats {
+        /* ============ STATS GRID ============ */
+        .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 14px 0;
         }
         
-        .stat {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 12px;
-            border-radius: 8px;
+        .stat-item {
+            background: rgba(102, 126, 234, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 12px;
+            padding: 14px;
             text-align: center;
-            border: 1px solid rgba(102, 126, 234, 0.2);
         }
         
-        .stat-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffd700;
+        .stat-num {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            margin-bottom: 4px;
         }
         
-        .stat-label {
+        .stat-txt {
             font-size: 10px;
-            color: #999;
-            margin-top: 4px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
+        /* ============ TABS ============ */
         .tabs {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -168,586 +285,359 @@
         .tab-btn {
             padding: 10px;
             background: transparent;
-            border: 2px solid #666;
-            color: #999;
+            border: 2px solid var(--text-dim);
+            color: var(--text-dim);
             border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
+            text-transform: uppercase;
         }
         
         .tab-btn.active {
-            background: #667eea;
-            border-color: #667eea;
+            background: var(--primary);
+            border-color: var(--primary);
             color: white;
         }
         
-        .tab-content {
+        .page {
             display: none;
         }
         
-        .tab-content.active {
+        .page.active {
             display: block;
+            animation: fadeIn 0.3s ease;
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* ============ TASK ITEM ============ */
         .task-item {
-            background: rgba(102, 126, 234, 0.1);
-            padding: 12px;
-            border-radius: 8px;
+            background: rgba(102, 126, 234, 0.08);
+            border: 1px solid rgba(102, 126, 234, 0.15);
+            border-radius: 12px;
+            padding: 14px;
             margin-bottom: 10px;
-            border-left: 4px solid #667eea;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .task-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+        
+        .task-content {
+            flex: 1;
         }
         
         .task-name {
-            font-weight: 600;
             font-size: 13px;
-            margin-bottom: 4px;
+            font-weight: 700;
+            margin-bottom: 3px;
         }
         
         .task-desc {
             font-size: 11px;
-            color: #999;
-            margin-bottom: 8px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
         }
         
         .task-reward {
             font-size: 12px;
-            color: #ffd700;
+            color: var(--accent);
             font-weight: 600;
         }
         
+        .task-btn {
+            padding: 8px 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        
+        .task-btn:active {
+            background: var(--secondary);
+        }
+        
+        .task-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* ============ INPUT ============ */
         .input-group {
+            margin-bottom: 14px;
+        }
+        
+        .input-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .input-field::placeholder {
+            color: var(--text-dim);
+        }
+        
+        .input-status {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+        
+        .input-status.success {
+            color: var(--green);
+        }
+        
+        /* ============ REFERRAL ============ */
+        .ref-box {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.25);
+        }
+        
+        .ref-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        
+        .ref-desc {
+            font-size: 11px;
+            opacity: 0.9;
             margin-bottom: 12px;
         }
         
-        .input-group label {
-            font-size: 12px;
-            display: block;
-            margin-bottom: 6px;
-            color: #ffd700;
-        }
-        
-        .input-group input {
-            width: 100%;
+        .ref-link-box {
+            background: rgba(0, 0, 0, 0.2);
             padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .input-group input::placeholder {
-            color: #666;
+        /* ============ BOTTOM NAV ============ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--card-bg);
+            border-top: 1px solid rgba(102, 126, 234, 0.2);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
         }
         
-        .message {
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .nav-item.active {
+            color: var(--accent);
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+        }
+        
+        /* ============ MESSAGE ============ */
+        .message-box {
             padding: 12px;
-            margin: 10px 0;
             border-radius: 8px;
             font-size: 12px;
-            animation: slideDown 0.3s ease;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
         }
         
-        .message.success {
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            color: #00ff88;
+        .message-box.success {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid var(--green);
+            color: var(--green);
         }
         
-        .message.error {
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid #ff6b6b;
-            color: #ff6b6b;
+        .message-box.error {
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid var(--red);
+            color: var(--red);
         }
         
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-        }
-        
-        .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .ref-link {
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-family: monospace;
-            word-break: break-all;
-            margin: 10px 0;
-            border: 1px solid rgba(102, 126, 234, 0.2);
-        }
-        
-        .btn-small {
-            padding: 8px;
-            font-size: 11px;
-            width: auto;
-            display: inline-block;
-            margin-right: 5px;
-            margin-top: 5px;
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER -->
-        <div class="header">
-            <div class="logo">🐕</div>
-            <div style="font-size: 18px; font-weight: 600;">LITTLE DOGE</div>
-            <div style="font-size: 12px; opacity: 0.8;">$LDOGE Mining</div>
-            <div class="balance" id="balance">0</div>
-            <div class="level-info" id="levelInfo">Level 0</div>
-        </div>
-        
-        <!-- MINING CARD -->
-        <div class="card">
-            <div class="card-title">⛏️ MINING</div>
-            <div class="countdown" id="countdown">00:00:00</div>
-            <div class="pending">
-                <div>Pending Reward</div>
-                <div class="pending-amount" id="pending">0</div>
-                <div style="font-size: 10px; color: #999; margin-top: 4px;" id="multiplierText">1x multiplier</div>
-            </div>
-            <button class="btn btn-claim" id="claimBtn" onclick="claimMining()" disabled>⏳ MINING...</button>
-        </div>
-        
-        <!-- STATS -->
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-value" id="speedBoost">0%</div>
-                <div class="stat-label">Speed Boost</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="referrals">0</div>
-                <div class="stat-label">Referrals</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="multiplier">1x</div>
-                <div class="stat-label">Multiplier</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value" id="tasks">0/3</div>
-                <div class="stat-label">Tasks</div>
-            </div>
-        </div>
-        
-        <!-- TABS -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab('home', this)">🏠 Home</button>
-            <button class="tab-btn" onclick="openTab('tasks', this)">✅ Tasks</button>
-            <button class="tab-btn" onclick="openTab('invite', this)">👥 Invite</button>
-            <button class="tab-btn" onclick="openTab('wallet', this)">🔗 Wallet</button>
-        </div>
-        
-        <!-- MESSAGES -->
-        <div id="message"></div>
-        
-        <!-- TASKS TAB -->
-        <div id="tasks" class="tab-content">
-            <div class="card">
-                <div class="card-title">Complete Tasks</div>
-                <div id="tasksContainer">
-                    <div class="loading"><div class="spinner"></div></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- INVITE TAB -->
-        <div id="invite" class="tab-content">
-            <div class="card">
-                <div class="card-title">👥 Invite Friends</div>
-                <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Get 10 coins + 5% speed boost per referral (max 35%)</p>
-                
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                    <div style="font-size: 11px; margin-bottom: 5px;">Your Referral Link:</div>
-                    <div class="ref-link" id="refLink">Loading...</div>
-                    <button class="btn btn-secondary btn-small" onclick="copyRef()">📋 Copy</button>
-                    <button class="btn btn-secondary btn-small" onclick="shareX()">🐦 Share X</button>
-                    <button class="btn btn-secondary" onclick="shareTG()">💬 Share TG</button>
-                </div>
-                
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-value" id="totalRefs">0</div>
-                        <div class="stat-label">Total Refs</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value" id="activeRefs">0</div>
-                        <div class="stat-label">Active</div>
-                    </div>
-                    <div class="stat" style="grid-column: 1/-1;">
-                        <div class="stat-value" id="boostPercent">0%</div>
-                        <div class="stat-label">Your Boost</div>
+    <div class="main">
+        <div class="container">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-top">
+                    <div class="logo-section">🐕</div>
+                    <div>
+                        <div class="header-title">LITTLE DOGE</div>
+                        <div class="header-subtitle">$LDOGE Mining</div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- WALLET TAB -->
-        <div id="wallet" class="tab-content">
-            <div class="card">
-                <div class="card-title">Connect Wallets</div>
                 
-                <div class="input-group">
-                    <label>Solana Wallet</label>
-                    <input type="text" id="solanaWallet" placeholder="So1...">
-                    <button class="btn btn-secondary" onclick="connectSolana()">Connect Solana</button>
-                    <div style="font-size: 11px; color: #999; margin-top: 5px;" id="solanaStatus">Not connected</div>
-                </div>
-                
-                <div class="input-group">
-                    <label>BASE Wallet</label>
-                    <input type="text" id="baseWallet" placeholder="0x...">
-                    <button class="btn btn-secondary" onclick="connectBase()">Connect BASE</button>
-                    <div style="font-size: 11px; color: #999; margin-top: 5px;" id="baseStatus">Not connected</div>
+                <div class="balance-box">
+                    <div class="balance-label">YOUR BALANCE</div>
+                    <div class="balance-value" id="balanceVal">0</div>
+                    <div class="level-display" id="levelVal">Level 0 • Beginner</div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <script>
-        // ===== FIREBASE INIT =====
-        const firebaseConfig = {
-            apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
-            authDomain: "cyrusprotocol-b3080.firebaseapp.com",
-            databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
-            projectId: "cyrusprotocol-b3080",
-            storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
-            messagingSenderId: "457843406848",
-            appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
-        };
-        
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        
-        // ===== GLOBALS =====
-        let tg = window.Telegram.WebApp;
-        let user = null;
-        let userId = null;
-        let countdownInterval = null;
-        
-        const MINING_TIME = 3 * 3600; // 3 hours
-        const WELCOME_BONUS = 20;
-        
-        const LEVELS = {
-            0: { name: 'Beginner', minCoins: 0, multiplier: 1 },
-            1: { name: 'Silver', minCoins: 1000, multiplier: 3 },
-            2: { name: 'Gold', minCoins: 4000, multiplier: 9 },
-            3: { name: 'Platinum', minCoins: 13000, multiplier: 27 },
-            4: { name: 'Diamond', minCoins: 40000, multiplier: 81 }
-        };
-        
-        // ===== INIT =====
-        window.addEventListener('load', async () => {
-            tg.ready();
-            tg.expand();
             
-            const telegramUser = tg.initDataUnsafe?.user;
-            userId = telegramUser?.id?.toString() || 'demo_' + Math.random().toString(36).substr(7);
-            
-            await initUser();
-            startCountdown();
-            loadTasks();
-        });
-        
-        // ===== USER INIT =====
-        async function initUser() {
-            try {
-                const ref = db.ref('users/' + userId);
-                const snap = await ref.once('value');
-                
-                if (snap.exists()) {
-                    user = snap.val();
-                } else {
-                    user = {
-                        userId: userId,
-                        username: tg.initDataUnsafe?.user?.first_name || 'User',
-                        coins: WELCOME_BONUS,
-                        totalEarned: WELCOME_BONUS,
-                        pending: 0,
-                        lastMine: Math.floor(Date.now() / 1000),
-                        level: 0,
-                        solanaWallet: '',
-                        baseWallet: '',
-                        refCode: 'LDOGE' + Math.random().toString(36).substr(2, 8).toUpperCase(),
-                        totalRefs: 0,
-                        activeRefs: 0,
-                        boost: 0,
-                        tasks: {},
-                        created: Math.floor(Date.now() / 1000)
-                    };
+            <!-- MINING SECTION -->
+            <div id="home-page" class="page active">
+                <div class="card mining-card">
+                    <div class="card-title">⛏️ Mining Status</div>
+                    <div class="mining-status" id="miningStatus">Initializing...</div>
+                    <div class="countdown-big" id="countdown">00:00:00</div>
                     
-                    await ref.set(user);
-                }
-                
-                updateUI();
-            } catch (e) {
-                console.error('Init error:', e);
-                showMsg('Error initializing: ' + e.message, 'error');
-            }
-        }
-        
-        // ===== UPDATE UI =====
-        function updateUI() {
-            if (!user) return;
-            
-            const level = LEVELS[user.level] || LEVELS[0];
-            
-            document.getElementById('balance').textContent = user.coins || 0;
-            document.getElementById('levelInfo').textContent = level.name + ' (Level ' + user.level + ')';
-            document.getElementById('speedBoost').textContent = Math.round((user.boost || 0) * 100) + '%';
-            document.getElementById('referrals').textContent = user.totalRefs || 0;
-            document.getElementById('multiplier').textContent = (level.multiplier || 1) + 'x';
-            
-            const tasksDone = Object.keys(user.tasks || {}).length;
-            document.getElementById('tasks').textContent = tasksDone + '/3';
-            
-            // Invite tab
-            document.getElementById('refLink').textContent = 'https://t.me/littledoge_bot?start=' + user.refCode;
-            document.getElementById('totalRefs').textContent = user.totalRefs || 0;
-            document.getElementById('activeRefs').textContent = user.activeRefs || 0;
-            document.getElementById('boostPercent').textContent = Math.round((user.boost || 0) * 100) + '%';
-            
-            // Wallet
-            if (user.solanaWallet) {
-                document.getElementById('solanaStatus').textContent = '✅ Connected: ' + user.solanaWallet.substring(0, 8) + '...';
-            }
-            if (user.baseWallet) {
-                document.getElementById('baseStatus').textContent = '✅ Connected: ' + user.baseWallet.substring(0, 8) + '...';
-            }
-        }
-        
-        // ===== COUNTDOWN =====
-        function startCountdown() {
-            if (countdownInterval) clearInterval(countdownInterval);
-            countdownInterval = setInterval(updateCountdown, 1000);
-            updateCountdown();
-        }
-        
-        function updateCountdown() {
-            if (!user) return;
-            
-            const level = LEVELS[user.level] || LEVELS[0];
-            const mult = level.multiplier || 1;
-            const boost = user.boost || 0;
-            const adjTime = MINING_TIME * (1 - boost);
-            
-            const now = Math.floor(Date.now() / 1000);
-            const passed = now - (user.lastMine || now);
-            const left = Math.max(0, adjTime - passed);
-            
-            const h = Math.floor(left / 3600);
-            const m = Math.floor((left % 3600) / 60);
-            const s = left % 60;
-            
-            document.getElementById('countdown').textContent = 
-                String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-            
-            const reward = 5 * mult;
-            
-            if (left <= 0) {
-                const newPending = (user.pending || 0) + reward;
-                document.getElementById('pending').textContent = newPending;
-                document.getElementById('multiplierText').textContent = mult + 'x multiplier (' + reward + ' coins)';
-                document.getElementById('claimBtn').disabled = false;
-                document.getElementById('claimBtn').textContent = '🎁 CLAIM ' + newPending + ' COINS';
-            } else {
-                document.getElementById('pending').textContent = user.pending || 0;
-                document.getElementById('multiplierText').textContent = mult + 'x multiplier (' + reward + ' coins)';
-                document.getElementById('claimBtn').disabled = true;
-                document.getElementById('claimBtn').textContent = '⏳ MINING IN PROGRESS';
-            }
-        }
-        
-        // ===== CLAIM MINING =====
-        async function claimMining() {
-            if (!user) return;
-            
-            try {
-                const level = LEVELS[user.level] || LEVELS[0];
-                const mult = level.multiplier || 1;
-                const claimed = (user.pending || 0) + (5 * mult);
-                const newCoins = (user.coins || 0) + claimed;
-                const newEarned = (user.totalEarned || 0) + claimed;
-                const newLevel = getLevel(newEarned);
-                
-                await db.ref('users/' + userId).update({
-                    coins: newCoins,
-                    totalEarned: newEarned,
-                    pending: 0,
-                    lastMine: Math.floor(Date.now() / 1000),
-                    level: newLevel
-                });
-                
-                user.coins = newCoins;
-                user.totalEarned = newEarned;
-                user.pending = 0;
-                user.lastMine = Math.floor(Date.now() / 1000);
-                user.level = newLevel;
-                
-                updateUI();
-                updateCountdown();
-                showMsg('✅ Claimed ' + claimed + ' coins!', 'success');
-            } catch (e) {
-                console.error('Claim error:', e);
-                showMsg('Error: ' + e.message, 'error');
-            }
-        }
-        
-        function getLevel(total) {
-            for (let i = 4; i >= 0; i--) {
-                if (total >= LEVELS[i].minCoins) return i;
-            }
-            return 0;
-        }
-        
-        // ===== TASKS =====
-        function loadTasks() {
-            const tasks = [
-                { id: 'follow_x', icon: '🐦', name: 'Follow X', desc: 'Follow @LittleDogecoin', url: 'https://x.com/LittleDogecoin', reward: 5 },
-                { id: 'join_tg', icon: '💬', name: 'Join Telegram', desc: 'Join @Little_Doge_coin', url: 'https://t.me/Little_Doge_coin', reward: 5 },
-                { id: 'visit_web', icon: '🌐', name: 'Visit Website', desc: 'Visit littledogecharity.online', url: 'https://littledogecharity.online/', reward: 5 }
-            ];
-            
-            let html = '';
-            const completed = user.tasks || {};
-            
-            tasks.forEach(t => {
-                const done = t.id in completed;
-                html += `
-                    <div class="task-item">
-                        <div class="task-name">${t.icon} ${t.name}</div>
-                        <div class="task-desc">${t.desc}</div>
-                        <button class="btn btn-secondary btn-small" onclick="completeTask('${t.id}', '${t.url}')" ${done ? 'disabled' : ''}>
-                            ${done ? '✓ Done' : 'Complete'}
-                        </button>
-                        <div class="task-reward">${done ? '✅ Completed' : '+' + t.reward + ' coins'}</div>
+                    <div class="pending-box">
+                        <div class="pending-label">PENDING COINS</div>
+                        <div class="pending-value" id="pendingCoins">0</div>
+                        <div class="multiplier-text" id="multiplierInfo">Every 3 hours = 5 coins</div>
                     </div>
-                `;
-            });
-            
-            document.getElementById('tasksContainer').innerHTML = html;
-        }
-        
-        async function completeTask(taskId, url) {
-            if (!user) return;
-            
-            const tasks = user.tasks || {};
-            if (taskId in tasks) {
-                showMsg('Already completed', 'error');
-                return;
-            }
-            
-            window.open(url, '_blank');
-            
-            try {
-                tasks[taskId] = { done: Math.floor(Date.now() / 1000) };
+                    
+                    <button class="btn btn-claim" id="claimBtn" onclick="claimReward()">⏳ MINING...</button>
+                </div>
                 
-                await db.ref('users/' + userId).update({
-                    tasks: tasks
-                });
-                
-                user.tasks = tasks;
-                loadTasks();
-                updateUI();
-                showMsg('✅ Task marked complete!', 'success');
-            } catch (e) {
-                console.error('Task error:', e);
-                showMsg('Error: ' + e.message, 'error');
-            }
-        }
-        
-        // ===== WALLET =====
-        async function connectSolana() {
-            const wallet = document.getElementById('solanaWallet').value.trim();
-            if (!wallet) {
-                showMsg('Enter Solana wallet', 'error');
-                return;
-            }
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-num" id="speedVal">0%</div>
+                        <div class="stat-txt">Speed Boost</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num" id="refsVal">0</div>
+                        <div class="stat-txt">Referrals</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num" id="levelVal2">0</div>
+                        <div class="stat-txt">Level</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-num" id="tasksVal">0/3</div>
+                        <div class="stat-txt">Tasks</div>
+                    </div>
+                </div>
+            </div>
             
-            try {
-                await db.ref('users/' + userId).update({ solanaWallet: wallet });
-                user.solanaWallet = wallet;
-                updateUI();
-                showMsg('✅ Solana wallet connected!', 'success');
-            } catch (e) {
-                showMsg('Error: ' + e.message, 'error');
-            }
-        }
-        
-        async function connectBase() {
-            const wallet = document.getElementById('baseWallet').value.trim();
-            if (!wallet) {
-                showMsg('Enter BASE wallet', 'error');
-                return;
-            }
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('home-page', this)">🏠 Home</button>
+                <button class="tab-btn" onclick="switchTab('tasks-page', this)">✅ Tasks</button>
+                <button class="tab-btn" onclick="switchTab('invite-page', this)">👥 Invite</button>
+                <button class="tab-btn" onclick="switchTab('wallet-page', this)">🔗 Wallet</button>
+            </div>
             
-            try {
-                await db.ref('users/' + userId).update({ baseWallet: wallet });
-                user.baseWallet = wallet;
-                updateUI();
-                showMsg('✅ BASE wallet connected!', 'success');
-            } catch (e) {
-                showMsg('Error: ' + e.message, 'error');
-            }
-        }
-        
-        // ===== REFERRAL =====
-        function copyRef() {
-            const link = document.getElementById('refLink').textContent;
-            navigator.clipboard.writeText(link);
-            showMsg('✅ Copied!', 'success');
-        }
-        
-        function shareX() {
-            const link = document.getElementById('refLink').textContent;
-            const text = 'Join LITTLE DOGE CHARITY! 🐕\n\n⛏️ Mine $LDOGE\n✅ Tasks = Rewards\n👥 Invite Friends\n\n' + link;
-            window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
-        }
-        
-        function shareTG() {
-            const link = document.getElementById('refLink').textContent;
-            window.open('https://t.me/share/url?url=' + encodeURIComponent(link), '_blank');
-        }
-        
-        // ===== TAB SWITCHING =====
-        function openTab(name, btn) {
-            document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+            <!-- MESSAGE BOX -->
+            <div id="messageBox"></div>
             
-            document.getElementById(name).classList.add('active');
-            btn.classList.add('active');
-        }
-        
-        // ===== MESSAGES =====
-        function showMsg(text, type) {
-            const div = document.createElement('div');
-            div.className = 'message ' + type;
-            div.textContent = text;
-            document.getElementById('message').appendChild(div);
+            <!-- TASKS PAGE -->
+            <div id="tasks-page" class="page">
+                <div class="card">
+                    <div class="card-title">Complete Tasks</div>
+                    <div id="tasksContainer"></div>
+                </div>
+            </div>
             
-            setTimeout(() => div.remove(), 2500);
-        }
-    </script>
-</body>
-</html>
+            <!-- INVITE PAGE -->
+            <div id="invite-page" class="page">
+                <div class="card">
+                    <div class="card-title">👥 Invite Friends</div>
+                    
+                    <div class="ref-box">
+                        <div class="ref-title">Earn & Grow</div>
+                        <div class="ref-desc">10 coins + 5% speed per invite (max 35%)</div>
+                        <div class="ref-link-box" id="refLink">Loading...</div>
+                        <button class="btn btn-primary btn-small" onclick="copyRef()">📋 Copy</button>
+                        <button class="btn btn-primary btn-small" onclick="shareX()">🐦 Share X</button>
+                        <button class="btn btn-primary" onclick="shareTG()">💬 Share TG</button>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-num" id="totalRefsVal">0</div>
+                            <div class="stat-txt">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num" id="activeRefsVal">0</div>
+                            <div class="stat-txt">Active</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num" id="boostVal">0%</div>
+                            <div class="stat-txt">Boost %</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num" id="inactiveRefsVal">0</div>
+                            <div class="stat-txt">Inactive</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WALLET PAGE -->
+            <div id="wallet-page" class="page">
+                <div class="card">
+                    <div class="card-title">Connect Wallets</div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">🔗 Solana Wallet</label>
+                        <input type="text" class="input-field" id="solanaInput" placeholder="So1...">
+                        <button class="btn btn-primary" onclick="connectSolana()">Connect Solana</button>
+                        <div class="input-status" id="solanaStatus">❌ Not connected</div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label class="input-label">🔗 BASE W
