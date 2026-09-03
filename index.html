@@ -192,18 +192,16 @@
 </div>
 
 <script>
-    // Hide Splash Screen after 4.5 seconds
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            const splash = document.getElementById('splashScreen');
-            if (splash) {
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                }, 500);
-            }
-        }, 4500);
-    });
+    // Direct Timeout Splash Screen Remover (Ensures it never gets stuck)
+    setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 500);
+        }
+    }, 4000);
 
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -382,4 +380,5 @@
         });
     }
 
-    const firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzv
