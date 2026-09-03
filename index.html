@@ -2,188 +2,324 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>$LDOGE Mini App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>$LDOGE - Ultimate Mini App</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #0b0f19; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none; }
+        body { background: #12161f; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
         .app-container { max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 90px; }
         
-        .tab-content { display: none; padding: 16px; flex: 1; }
-        
-        .card { background: #131c31; border: 1px solid #1e293b; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .coin-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0b0f19; font-weight: 900; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(245,158,11,0.4); }
-        .coin-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
-        
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; padding: 10px 0; z-index: 999; max-width: 480px; margin: 0 auto; right: 0; }
-        .nav-item { background: none; border: none; color: #64748b; font-size: 12px; display: flex; flex-direction: column; align-items: center; cursor: pointer; font-weight: 600; flex: 1; }
+        .tab-content { display: none !important; padding: 20px 16px; flex: 1; }
+        .tab-content.active { display: block !important; }
+
+        /* Header Balance */
+        .balance-header { text-align: center; margin-top: 10px; margin-bottom: 24px; }
+        .balance-header p { font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .balance-header h1 { font-size: 44px; font-weight: 900; color: #ffffff; display: flex; align-items: center; justify-content: center; gap: 8px; text-shadow: 0 4px 20px rgba(255,255,100,0.2); }
+
+        /* 3-Hour Claim Mining Box */
+        .mining-card { background: #1b2230; border: 1px solid #2a354a; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); margin-bottom: 20px; }
+        .mining-coin { width: 130px; height: 130px; margin: 0 auto 16px auto; border-radius: 50%; background: radial-gradient(circle, #f59e0b 0%, #b45309 80%); border: 4px solid #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 60px; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); }
+        .timer-display { font-size: 26px; font-family: monospace; font-weight: 900; color: #38bdf8; margin: 12px 0 16px 0; }
+        .claim-btn { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #12161f; font-weight: 900; border: none; width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
+        .claim-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+
+        /* Boost Card Item */
+        .card-item { background: #1b2230; border: 1px solid #2a354a; border-radius: 14px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .card-info h4 { font-size: 15px; font-weight: bold; color: #fff; margin-bottom: 4px; }
+        .card-info p { font-size: 12px; color: #34d399; margin-bottom: 2px; }
+        .card-info span { font-size: 12px; color: #f59e0b; }
+        .upgrade-btn { background: #f59e0b; color: #12161f; font-weight: bold; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+        .upgrade-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+
+        /* Task Center Action Button */
+        .task-action-btn { background: #3b82f6; color: #fff; font-weight: bold; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .task-action-btn:disabled { background: #10b981; color: #fff; cursor: not-allowed; }
+
+        /* Referral Item */
+        .referral-item { display: flex; justify-content: space-between; align-items: center; background: #12161f; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #2a354a; font-size: 13px; }
+
+        /* Professional Toast Notification Popup */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 12px; border: 1px solid #334155; font-size: 13px; font-weight: bold; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Bottom Navigation (5 Tabs) */
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #161d29; border-top: 1px solid #2a354a; display: flex; justify-content: space-around; padding: 10px 0; z-index: 999; max-width: 480px; margin: 0 auto; right: 0; }
+        .nav-item { background: none; border: none; color: #64748b; font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; font-weight: 600; flex: 1; }
         .nav-item.active { color: #f59e0b; }
         .nav-item span.icon { font-size: 20px; margin-bottom: 2px; }
 
-        .input-box { width: 100%; background: #0b0f19; border: 1px solid #334155; border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 14px; margin-top: 6px; margin-bottom: 6px; }
-        .warning-text { font-size: 10px; color: #f87171; margin-bottom: 10px; line-height: 1.3; }
-        .primary-btn { width: 100%; font-weight: bold; border: none; border-radius: 10px; padding: 12px; cursor: pointer; font-size: 14px; color: #0b0f19; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-        
-        .referral-item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 14px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #1e293b; font-size: 13px; }
-        .task-btn { background: #2563eb; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .task-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
-        .task-btn.pending { background: #d97706; color: #fff; }
-        .task-btn.claimable { background: #10b981; color: #fff; }
+        .input-box { width: 100%; background: #12161f; border: 1px solid #2a354a; border-radius: 10px; padding: 12px; color: #fff; font-size: 14px; margin-top: 6px; margin-bottom: 8px; }
+        .primary-btn { width: 100%; font-weight: bold; border: none; border-radius: 10px; padding: 14px; cursor: pointer; font-size: 14px; color: #12161f; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
     </style>
 </head>
 <body>
 
+<!-- Professional Toast Popup Element -->
+<div id="toast">Notification message</div>
+
 <div class="app-container">
 
-    <!-- 1. DASHBOARD / MINING TAB -->
-    <div id="tab-dashboard" class="tab-content" style="display: block;">
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 20px;">🐕</span>
-                <span style="font-weight: bold; font-size: 14px; color: #f59e0b;">$LDOGE App</span>
-            </div>
-            <div style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 4px 10px; border-radius: 8px; font-size: 11px; color: #f59e0b; font-weight: bold;">
-                🚀 Mining Active
-            </div>
+    <!-- 1. FARM / MINING TAB -->
+    <div id="tab-farm" class="tab-content active">
+        <div class="balance-header">
+            <p>Total Balance</p>
+            <h1>🪙 <span id="balanceDisplay">10</span></h1>
         </div>
 
-        <div class="card" style="text-align: center; padding: 20px;">
-            <p style="font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px;">Total Balance</p>
-            <h1 id="balanceDisplay" style="font-size: 36px; font-weight: 900; color: #f59e0b; margin-top: 4px;">10</h1>
-            <p style="font-size: 11px; color: #94a3b8; font-weight: 600;">$LDOGE TOKENS</p>
-        </div>
-
-        <div class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-            <p id="statusText" style="font-size: 11px; font-weight: bold; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px;">Ready to Claim</p>
-            <div id="timerDisplay" style="font-size: 28px; font-family: monospace; font-weight: 900; color: #22d3ee; margin-bottom: 16px;">00:00:00</div>
-            
-            <button id="claimBtn" onclick="handleClaim()" class="coin-btn" style="width: 110px; height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <span style="font-size: 28px; margin-bottom: 2px;">🪙</span>
-                <span id="btnText" style="font-size: 10px; text-transform: uppercase; font-weight: 800;">CLAIM 🚀</span>
-            </button>
-            <p style="font-size: 11px; color: #94a3b8; margin-top: 14px;">Reward: <span style="color: #34d399; font-weight: bold;">+5 Coins</span></p>
+        <div class="mining-card">
+            <div class="mining-coin">🐕</div>
+            <p style="font-size: 12px; color: #94a3b8; text-transform: uppercase;" id="miningStatusText">Ready to Claim</p>
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <button id="claimBtn" onclick="handleClaim()" class="claim-btn">Claim 5 Coins 🚀</button>
+            <p style="font-size: 11px; color: #64748b; margin-top: 10px;">Cycle duration: 3 Hours</p>
         </div>
     </div>
 
-    <!-- 2. TASKS TAB -->
+    <!-- 2. BOOSTS TAB (Level Upgrade up to Level 20) -->
+    <div id="tab-boosts" class="tab-content">
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">⚡ Mining Speed Booster</h2>
+        <div id="boostContainer"></div>
+    </div>
+
+    <!-- 3. TASKS TAB -->
     <div id="tab-tasks" class="tab-content">
-        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🎯 Task Center</h2>
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🎯 Task Center</h2>
         
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <p style="font-size: 13px; font-weight: bold;">Follow on X (Twitter)</p>
-                <p style="font-size: 11px; color: #34d399; margin-top: 2px;">+15 Coins</p>
+        <div class="card-item">
+            <div class="card-info">
+                <h4>Follow on X (Twitter)</h4>
+                <p>Reward: +25 Coins</p>
             </div>
-            <button id="taskBtn1" onclick="handleTaskAction(1, 'https://x.com/LittleDogecoin')" class="task-btn">Start</button>
+            <button onclick="completeTask('task1', 'https://x.com/LittleDogecoin', 25)" class="task-action-btn" id="task1Btn">Start</button>
         </div>
 
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <p style="font-size: 13px; font-weight: bold;">Join Telegram Channel</p>
-                <p style="font-size: 11px; color: #34d399; margin-top: 2px;">+15 Coins</p>
+        <div class="card-item">
+            <div class="card-info">
+                <h4>Join Telegram Channel</h4>
+                <p>Reward: +25 Coins</p>
             </div>
-            <button id="taskBtn2" onclick="handleTaskAction(2, 'https://t.me/Little_Doge_coin')" class="task-btn">Start</button>
+            <button onclick="completeTask('task2', 'https://t.me/Little_Doge_coin', 25)" class="task-action-btn" id="task2Btn">Start</button>
         </div>
 
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <p style="font-size: 13px; font-weight: bold;">Visit Official Website</p>
-                <p style="font-size: 11px; color: #34d399; margin-top: 2px;">+15 Coins</p>
+        <div class="card-item">
+            <div class="card-info">
+                <h4>Visit Official Website</h4>
+                <p>Reward: +20 Coins</p>
             </div>
-            <button id="taskBtn3" onclick="handleTaskAction(3, 'https://littledogecharity.online/')" class="task-btn">Start</button>
+            <button onclick="completeTask('task3', 'https://littledogecharity.online/', 20)" class="task-action-btn" id="task3Btn">Start</button>
         </div>
     </div>
 
-    <!-- 3. INVITE TAB -->
-    <div id="tab-invite" class="tab-content">
-        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👥 Invite Friends</h2>
-        <div class="card" style="text-align: center;">
-            <p style="font-size: 13px; font-weight: bold; margin-bottom: 6px;">Earn 20 Coins Per Invite</p>
-            <input type="text" readonly value="" class="input-box" style="text-align: center; font-size: 11px;" id="refLink">
-            <button onclick="copyRefLink()" class="primary-btn">Copy Invite Link 🔗</button>
+    <!-- 4. FRENS TAB -->
+    <div id="tab-frens" class="tab-content">
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👥 Frens & Squads</h2>
+        <div style="background: #1b2230; border: 1px solid #2a354a; border-radius: 14px; padding: 16px; text-align: center; margin-bottom: 14px;">
+            <p style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">Earn 20 Coins Per Invite</p>
+            <input type="text" readonly class="input-box" style="text-align: center; font-size: 11px;" id="refLink">
+            <button onclick="copyRefLink()" class="primary-btn" style="margin-top: 10px;">Copy Invite Link 🔗</button>
         </div>
-        <div class="card">
+        
+        <div style="background: #1b2230; border: 1px solid #2a354a; border-radius: 14px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 13px;">
-                <span>👥 Total Team: <strong id="totalFriends" style="color: #22d3ee;">0</strong></span>
+                <span>👥 Total Team: <strong id="totalFriends" style="color: #38bdf8;">0</strong></span>
                 <span>🎁 Earned: <strong id="totalRefReward" style="color: #34d399;">0 Coins</strong></span>
             </div>
-            <h3 style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #f59e0b; border-top: 1px solid #1e293b; padding-top: 10px;">Your Friends:</h3>
+            <h3 style="font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #f59e0b; border-top: 1px solid #2a354a; padding-top: 10px;">Your Friends List:</h3>
             <div id="friendListContainer">
                 <p style="text-align:center; color:#94a3b8; font-size:12px;">No friends invited yet.</p>
             </div>
         </div>
     </div>
 
-    <!-- 4. WALLET TAB -->
+    <!-- 5. WALLET TAB -->
     <div id="tab-wallet" class="tab-content">
-        <h2 style="font-size: 16px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👛 Wallet Submissions</h2>
-        <div class="card">
-            <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">Solana Wallet Address</p>
-            <input type="text" id="solAddressInput" placeholder="Solana address..." class="input-box">
-            <p class="warning-text">⚠️ Use personal non-custodial wallets (Phantom, etc.).</p>
-            <button onclick="saveSolWallet()" style="background: #9945FF; color: #fff;" class="primary-btn">Save Solana Address 🪐</button>
+        <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">👛 Wallet Submissions</h2>
+        <div style="background: #1b2230; border: 1px solid #2a354a; border-radius: 14px; padding: 16px; margin-bottom: 14px;">
+            <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #9945FF;">Solana Wallet Address</p>
+            <input type="text" id="solAddressInput" placeholder="Enter Solana Address..." class="input-box">
+            <button onclick="saveSolWallet()" class="primary-btn" style="margin-top: 8px; background: #9945FF; color: #fff;">Save Solana 🪐</button>
         </div>
-        <div class="card">
-            <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">Base Network Wallet Address</p>
-            <input type="text" id="baseAddressInput" placeholder="0x..." class="input-box">
-            <p class="warning-text">⚠️ Use personal non-custodial wallets (MetaMask, etc.).</p>
-            <button onclick="saveBaseAddress()" style="background: #1e3a8a; color: #fff;" class="primary-btn">Save Base Address 💾</button>
+        <div style="background: #1b2230; border: 1px solid #2a354a; border-radius: 14px; padding: 16px;">
+            <p style="font-size: 13px; font-weight: bold; margin-bottom: 4px; color: #3b82f6;">Base Network Wallet Address</p>
+            <input type="text" id="baseAddressInput" placeholder="Enter Base (0x...) Address..." class="input-box">
+            <button onclick="saveBaseWallet()" class="primary-btn" style="margin-top: 8px; background: #3b82f6; color: #fff;">Save Base 🔵</button>
         </div>
     </div>
 
     <!-- BOTTOM NAVIGATION -->
     <div class="nav-bar">
-        <button class="nav-item active" onclick="switchTab('dashboard', this)"><span class="icon">⛏️</span>Mining</button>
+        <button class="nav-item active" onclick="switchTab('farm', this)"><span class="icon">🪙</span>Farm</button>
+        <button class="nav-item" onclick="switchTab('boosts', this)"><span class="icon">⚡</span>Boosts</button>
         <button class="nav-item" onclick="switchTab('tasks', this)"><span class="icon">🎯</span>Tasks</button>
-        <button class="nav-item" onclick="switchTab('invite', this)"><span class="icon">👥</span>Invite</button>
+        <button class="nav-item" onclick="switchTab('frens', this)"><span class="icon">👥</span>Frens</button>
         <button class="nav-item" onclick="switchTab('wallet', this)"><span class="icon">👛</span>Wallet</button>
     </div>
 
 </div>
 
 <script>
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        if(!toast) return;
+        toast.innerText = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 2500);
+    }
+
     function switchTab(tabId, btnElement) {
-        const tabs = ['dashboard', 'tasks', 'invite', 'wallet'];
+        const tabs = ['farm', 'boosts', 'tasks', 'frens', 'wallet'];
         tabs.forEach(t => {
             const el = document.getElementById('tab-' + t);
-            if (el) el.style.display = 'none';
+            if (el) {
+                el.classList.remove('active');
+                el.style.display = 'none';
+            }
         });
-
+        
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-
+        
         const target = document.getElementById('tab-' + tabId);
-        if (target) target.style.display = 'block';
-        if (btnElement) btnElement.classList.add('active');
+        if (target) {
+            target.classList.add('active');
+            target.style.display = 'block';
+        }
+        if (btnElement) {
+            btnElement.classList.add('active');
+        }
     }
 
     const botUsername = "Littledogecoinbot";
     let userId = localStorage.getItem('ldoge_uid');
-    let tgUser = null;
-
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user) {
-        tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-        userId = "tg_" + tgUser.id;
+    if (!userId) {
+        userId = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe?.user?.id) 
+            ? "tg_" + window.Telegram.WebApp.initDataUnsafe.user.id 
+            : "id_" + Math.random().toString(36).substring(2, 8);
         localStorage.setItem('ldoge_uid', userId);
-    } else {
-        if (!userId) {
-            userId = "id_" + Math.random().toString(36).substring(2, 8) + Date.now().toString(36);
-            localStorage.setItem('ldoge_uid', userId);
-        }
     }
-
-    document.getElementById('refLink').value = `https://t.me/${botUsername}?start=${userId}`;
+    const refLinkInput = document.getElementById('refLink');
+    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${userId}`;
 
     let balance = 10;
     let miningEndTime = 0;
     let timerInterval = null;
+    let profitPerHour = 0;
+    let boosterLevel = 0; // Current booster level (Max 20)
+    let completedTasks = {};
     let friendsList = [];
-    const COIN_DURATION = 3 * 60 * 60;
-    const TASK_WAIT_TIME = 120; // 2 minutes in seconds
+    const CLAIM_DURATION = 3 * 60 * 60;
+
+    // Level data up to Level 20 (Cost and Speed bonus)
+    const boosterLevels = [
+        { level: 1, cost: 250, speed: 0.5 },
+        { level: 2, cost: 800, speed: 1.0 },
+        { level: 3, cost: 2000, speed: 1.5 },
+        { level: 4, cost: 4500, speed: 2.0 },
+        { level: 5, cost: 9000, speed: 2.5 },
+        { level: 6, cost: 16000, speed: 3.0 },
+        { level: 7, cost: 28000, speed: 3.5 },
+        { level: 8, cost: 45000, speed: 4.0 },
+        { level: 9, cost: 70000, speed: 4.5 },
+        { level: 10, cost: 100000, speed: 5.0 },
+        { level: 11, cost: 150000, speed: 5.5 },
+        { level: 12, cost: 220000, speed: 6.0 },
+        { level: 13, cost: 300000, speed: 6.5 },
+        { level: 14, cost: 400000, speed: 7.0 },
+        { level: 15, cost: 550000, speed: 7.5 },
+        { level: 16, cost: 750000, speed: 8.0 },
+        { level: 17, cost: 1000000, speed: 8.5 },
+        { level: 18, cost: 1350000, speed: 9.0 },
+        { level: 19, cost: 1800000, speed: 9.5 },
+        { level: 20, cost: 2500000, speed: 10.0 }
+    ];
+
+    function renderBooster() {
+        const container = document.getElementById('boostContainer');
+        if (!container) return;
+
+        if (boosterLevel >= 20) {
+            container.innerHTML = `
+                <div class="card-item" style="flex-direction: column; text-align: center; padding: 24px;">
+                    <h4>🚀 Max Level Reached!</h4>
+                    <p style="margin-top: 8px; color: #38bdf8;">Your booster is at Level 20 (Max Speed +10.0x)</p>
+                </div>`;
+            return;
+        }
+
+        const nextLevelData = boosterLevels[boosterLevel];
+        let html = `
+            <div class="card-item">
+                <div class="card-info">
+                    <h4>Mining Speed Upgrade (Lvl ${nextLevelData.level}/20)</h4>
+                    <p>Speed Bonus: +${nextLevelData.speed}x</p>
+                    <span>Cost: ${nextLevelData.cost.toLocaleString()} Coins</span>
+                </div>
+                <button onclick="upgradeBooster()" class="upgrade-btn">Upgrade</button>
+            </div>`;
+        container.innerHTML = html;
+    }
+
+    function upgradeBooster() {
+        if (boosterLevel >= 20) return;
+        const nextLevelData = boosterLevels[boosterLevel];
+
+        if (balance >= nextLevelData.cost) {
+            balance -= nextLevelData.cost;
+            boosterLevel++;
+            profitPerHour = nextLevelData.speed * 100; // Adjust passive profit based on speed
+
+            userRef.update({ balance: balance, boosterLevel: boosterLevel, profitPerHour: profitPerHour });
+            renderBooster();
+            showToast(`Booster upgraded to Level ${boosterLevel}! 🚀`);
+        } else {
+            showToast("⚠️ Not enough coins to upgrade!");
+        }
+    }
+
+    function renderFriendsList() {
+        const container = document.getElementById('friendListContainer');
+        if(!container) return;
+        const totalFriendsEl = document.getElementById('totalFriends');
+        const totalRefRewardEl = document.getElementById('totalRefReward');
+        if(totalFriendsEl) totalFriendsEl.innerText = friendsList.length;
+        if(totalRefRewardEl) totalRefRewardEl.innerText = (friendsList.length * 20) + " Coins";
+
+        if(friendsList.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:12px;">No friends invited yet. Share your link!</p>';
+            return;
+        }
+
+        let html = '';
+        friendsList.forEach((f) => {
+            html += `<div class="referral-item">
+                <span>👤 ${f.name}</span>
+                <span style="color: #34d399; font-weight: bold;">+20 Coins</span>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function updateTasksUI() {
+        ['task1', 'task2', 'task3'].forEach(tKey => {
+            const btn = document.getElementById(tKey + 'Btn');
+            if (btn) {
+                if (completedTasks[tKey]) {
+                    btn.innerText = "Completed ✅";
+                    btn.disabled = true;
+                } else {
+                    btn.innerText = "Start";
+                    btn.disabled = false;
+                }
+            }
+        });
+    }
 
     const firebaseConfig = {
       apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
@@ -199,57 +335,50 @@
     const db = firebase.database();
     const userRef = db.ref('users/' + userId);
 
-    userRef.on('value', (snapshot) => {
+    userRef.once('value', (snapshot) => {
         try {
             const data = snapshot.val();
             if (data) {
-                balance = data.balance || 10;
+                balance = data.balance !== undefined ? data.balance : 10;
                 miningEndTime = data.miningEndTime || 0;
+                profitPerHour = data.profitPerHour || 0;
+                boosterLevel = data.boosterLevel || 0;
+                completedTasks = data.completedTasks || {};
                 friendsList = data.friends || [];
-                
-                document.getElementById('balanceDisplay').innerText = balance;
-                checkMiningTimer();
 
-                if (data.solWallet && !document.getElementById('solAddressInput').value) {
-                    document.getElementById('solAddressInput').value = data.solWallet;
-                }
-                if (data.baseWallet && !document.getElementById('baseAddressInput').value) {
-                    document.getElementById('baseAddressInput').value = data.baseWallet;
-                }
+                const balanceDisplay = document.getElementById('balanceDisplay');
+                if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
+                
+                const solInput = document.getElementById('solAddressInput');
+                if (data.solWallet && solInput) solInput.value = data.solWallet;
+                
+                const baseInput = document.getElementById('baseAddressInput');
+                if (data.baseWallet && baseInput) baseInput.value = data.baseWallet;
+
+                checkMiningTimer();
+                renderBooster();
+                updateTasksUI();
                 renderFriendsList();
-                checkTasksStatus();
             } else {
-                userRef.set({ 
-                    balance: 10, 
-                    miningEndTime: 0, 
-                    friends: [],
-                    telegramName: tgUser ? tgUser.first_name : "Browser User"
-                });
+                userRef.set({ balance: 10, miningEndTime: 0, profitPerHour: 0, boosterLevel: 0, completedTasks: {}, friends: [] });
             }
         } catch(e) {
-            console.log("Sync error");
+            console.log("Firebase sync handled safely");
         }
     });
 
-    function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-
     function handleClaim() {
         balance += 5;
-        miningEndTime = Math.floor(Date.now() / 1000) + COIN_DURATION;
+        miningEndTime = Math.floor(Date.now() / 1000) + CLAIM_DURATION;
         userRef.update({ balance: balance, miningEndTime: miningEndTime });
-        startCountdown(COIN_DURATION);
+        startCountdown(CLAIM_DURATION);
+        showToast("Successfully claimed 5 coins! 🎉");
     }
 
     function checkMiningTimer() {
-        if (miningEndTime > 0) {
-            let remaining = miningEndTime - Math.floor(Date.now() / 1000);
-            if (remaining > 0) startCountdown(remaining);
-            else resetTimerUI();
+        const now = Math.floor(Date.now() / 1000);
+        if (miningEndTime > now) {
+            startCountdown(miningEndTime - now);
         } else {
             resetTimerUI();
         }
@@ -258,14 +387,21 @@
     function startCountdown(durationSeconds) {
         if (timerInterval) clearInterval(timerInterval);
         const btn = document.getElementById('claimBtn');
-        document.getElementById('statusText').innerText = "Mining in Progress";
-        document.getElementById('btnText').innerText = "MINING";
-        btn.disabled = true;
+        const statusText = document.getElementById('miningStatusText');
+        if(statusText) statusText.innerText = "Mining in Progress ⏳";
+        if(btn) btn.disabled = true;
 
         let timeLeft = durationSeconds;
         timerInterval = setInterval(() => {
             timeLeft--;
-            document.getElementById('timerDisplay').innerText = formatTime(timeLeft);
+            const h = Math.floor(timeLeft / 3600);
+            const m = Math.floor((timeLeft % 3600) / 60);
+            const s = timeLeft % 60;
+            const timerDisp = document.getElementById('timerDisplay');
+            if(timerDisp) {
+                timerDisp.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }
+
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 resetTimerUI();
@@ -274,120 +410,63 @@
     }
 
     function resetTimerUI() {
-        document.getElementById('statusText').innerText = "Ready to Claim";
-        document.getElementById('btnText').innerText = "CLAIM 🚀";
-        document.getElementById('claimBtn').disabled = false;
-        document.getElementById('timerDisplay').innerText = "00:00:00";
+        const statusText = document.getElementById('miningStatusText');
+        const timerDisp = document.getElementById('timerDisplay');
+        const btn = document.getElementById('claimBtn');
+        if(statusText) statusText.innerText = "Ready to Claim";
+        if(timerDisp) timerDisp.innerText = "03:00:00";
+        if(btn) btn.disabled = false;
     }
 
-    // --- NEW TASK TIMED SYSTEM ---
-    function checkTasksStatus() {
-        const now = Math.floor(Date.now() / 1000);
-        for(let i = 1; i <= 3; i++) {
-            const btn = document.getElementById('taskBtn' + i);
-            if(!btn) continue;
-
-            const status = localStorage.getItem('task_status_' + i);
-            const endTime = parseInt(localStorage.getItem('task_time_' + i) || '0');
-
-            if (status === 'completed') {
-                btn.innerText = "Completed ✅";
-                btn.className = "task-btn";
-                btn.disabled = true;
-            } else if (status === 'pending') {
-                const remaining = endTime - now;
-                if (remaining > 0) {
-                    const mins = Math.floor(remaining / 60);
-                    const secs = remaining % 60;
-                    btn.innerText = `Verify (${mins}:${secs < 10 ? '0' : ''}${secs})`;
-                    btn.className = "task-btn pending";
-                    btn.disabled = true;
-                } else {
-                    btn.innerText = "Claim Reward 🎁";
-                    btn.className = "task-btn claimable";
-                    btn.disabled = false;
-                }
-            } else {
-                btn.innerText = "Start";
-                btn.className = "task-btn";
-                btn.disabled = false;
-            }
-        }
+    function completeTask(taskKey, url, reward) {
+        if (completedTasks[taskKey]) return;
+        window.open(url, '_blank');
+        setTimeout(() => {
+            balance += reward;
+            completedTasks[taskKey] = true;
+            userRef.update({ balance: balance, completedTasks: completedTasks });
+            updateTasksUI();
+            showToast(`Task completed! +${reward} Coins added 🎯`);
+        }, 2000);
     }
 
-    function handleTaskAction(taskId, url) {
-        const status = localStorage.getItem('task_status_' + taskId);
-
-        if (!status) {
-            // Step 1: Open link & start 2 min timer
-            window.open(url, '_blank');
-            const targetTime = Math.floor(Date.now() / 1000) + TASK_WAIT_TIME;
-            localStorage.setItem('task_status_' + taskId, 'pending');
-            localStorage.setItem('task_time_' + taskId, targetTime);
-            checkTasksStatus();
-            alert("Task started! Please wait 2 minutes to verify and claim your reward.");
-        } else if (status === 'pending') {
-            const endTime = parseInt(localStorage.getItem('task_time_' + taskId) || '0');
-            if (Math.floor(Date.now() / 1000) >= endTime) {
-                // Step 2: Claim reward
-                balance += 15;
-                localStorage.setItem('task_status_' + taskId, 'completed');
-                userRef.update({ balance: balance });
-                checkTasksStatus();
-                alert("Task verified successfully! +15 Coins added.");
-            } else {
-                alert("Verification in progress! Please wait for the timer to finish.");
-            }
-        }
-    }
-
-    // Refresh task timers every second
     setInterval(() => {
-        checkTasksStatus();
+        if (profitPerHour > 0) {
+            balance += profitPerHour / 3600;
+            const balanceDisplay = document.getElementById('balanceDisplay');
+            if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
+        }
     }, 1000);
+
+    setInterval(() => {
+        userRef.update({ balance: balance });
+    }, 5000);
 
     function copyRefLink() {
         const copyText = document.getElementById('refLink');
+        if(!copyText) return;
         copyText.select();
-        copyText.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(copyText.value);
-        alert("Invite link copied!");
-    }
-
-    function renderFriendsList() {
-        const container = document.getElementById('friendListContainer');
-        document.getElementById('totalFriends').innerText = friendsList.length;
-        document.getElementById('totalRefReward').innerText = (friendsList.length * 20) + " Coins";
-
-        if(friendsList.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:12px;">No friends invited yet.</p>';
-            return;
-        }
-
-        let html = '';
-        friendsList.forEach((f) => {
-            html += `<div class="referral-item">
-                <span>👤 ${f.name}</span>
-                <span style="color: #34d399; font-weight: bold;">+20 Coins</span>
-            </div>`;
-        });
-        container.innerHTML = html;
+        showToast("Invite link copied to clipboard! 🔗");
     }
 
     function saveSolWallet() {
-        const addr = document.getElementById('solAddressInput').value.trim();
-        if(addr.length < 10) { alert("Please enter a valid Solana address!"); return; }
+        const solInput = document.getElementById('solAddressInput');
+        if(!solInput) return;
+        const addr = solInput.value.trim();
+        if (addr.length < 10) { showToast("⚠️ Please enter a valid Solana address!"); return; }
         userRef.update({ solWallet: addr });
-        alert("Solana Wallet Saved Successfully!");
+        showToast("Solana Wallet Saved Successfully! 🪐");
     }
 
-    function saveBaseAddress() {
-        const addr = document.getElementById('baseAddressInput').value.trim();
-        if(addr.length < 10) { alert("Please enter a valid Base address!"); return; }
+    function saveBaseWallet() {
+        const baseInput = document.getElementById('baseAddressInput');
+        if(!baseInput) return;
+        const addr = baseInput.value.trim();
+        if (addr.length < 10) { showToast("⚠️ Please enter a valid Base address!"); return; }
         userRef.update({ baseWallet: addr });
-        alert("Base Address Saved Successfully!");
+        showToast("Base Wallet Saved Successfully! 🔵");
     }
 </script>
 </body>
-    </html>
-    
+</html>
