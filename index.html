@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>LDOGE Mining</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 10px;
+            padding-bottom: 100px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .logo {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .balance {
+            font-size: 40px;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 10px 0;
+        }
+        
+        .level-info {
+            font-size: 12px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .card {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffd700;
+            margin-bottom: 12px;
+        }
+        
+        .countdown {
+            font-size: 50px;
+            font-weight: bold;
+            text-align: center;
+            color: #ffd700;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        
+        .pending {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        
+        .pending-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .btn-claim {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+        }
+        
+        .btn-claim:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-claim:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary:active {
+            background: #764ba2;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .stat {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            color: #999;
+            margin-top: 4px;
+        }
+        
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .tab-btn {
+            padding: 10px;
+            background: transparent;
+            border: 2px solid #666;
+            color: #999;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .task-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        
+        .task-desc {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        
+        .task-reward {
+            font-size: 12px;
+            color: #ffd700;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            margin-bottom: 12px;
+        }
+        
+        .input-group label {
+            font-size: 12px;
+            display: block;
+            margin-bottom: 6px;
+            color: #ffd700;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .input-group input::placeholder {
+            color: #666;
+        }
+        
+        .message {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 12px;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .message.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+        
+        .message.error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .ref-link {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn-small {
+            padding: 8px;
+            font-size: 11px;
+            width: auto;
+            display: inline-block;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo">🐕</div>
+            <div style="font-size: 18px; font-weight: 600;">LITTLE DOGE</div>
+            <div style="font-size: 12px; opacity: 0.8;">$LDOGE Mining</div>
+            <div class="balance" id="balance">0</div>
+            <div class="level-info" id="levelInfo">Level 0</div>
+        </div>
+        
+        <!-- MINING CARD -->
+        <div class="card">
+            <div class="card-title">⛏️ MINING</div>
+            <div class="countdown" id="countdown">00:00:00</div>
+            <div class="pending">
+                <div>Pending Reward</div>
+                <div class="pending-amount" id="pending">0</div>
+                <div style="font-size: 10px; color: #999; margin-top: 4px;" id="multiplierText">1x multiplier</div>
+            </div>
+            <button class="btn btn-claim" id="claimBtn" onclick="claimMining()" disabled>⏳ MINING...</button>
+        </div>
+        
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="speedBoost">0%</div>
+                <div class="stat-label">Speed Boost</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="referrals">0</div>
+                <div class="stat-label">Referrals</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="multiplier">1x</div>
+                <div class="stat-label">Multiplier</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="tasks">0/3</div>
+                <div class="stat-label">Tasks</div>
+            </div>
+        </div>
+        
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('home', this)">🏠 Home</button>
+            <button class="tab-btn" onclick="openTab('tasks', this)">✅ Tasks</button>
+            <button class="tab-btn" onclick="openTab('invite', this)">👥 Invite</button>
+            <button class="tab-btn" onclick="openTab('wallet', this)">🔗 Wallet</button>
+        </div>
+        
+        <!-- MESSAGES -->
+        <div id="message"></div>
+        
+        <!-- TASKS TAB -->
+        <div id="tasks" class="tab-content">
+            <div class="card">
+                <div class="card-title">Complete Tasks</div>
+                <div id="tasksContainer">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INVITE TAB -->
+        <div id="invite" class="tab-content">
+            <div class="card">
+                <div class="card-title">👥 Invite Friends</div>
+                <p style="font-size: 12px; color: #999; margin-bottom: 10px;">Get 10 coins + 5% speed boost per referral (max 35%)</p>
+                
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="font-size: 11px; margin-bottom: 5px;">Your Referral Link:</div>
+                    <div class="ref-link" id="refLink">Loading...</div>
+                    <button class="btn btn-secondary btn-small" onclick="copyRef()">📋 Copy</button>
+                    <button class="btn btn-secondary btn-small" onclick="shareX()">🐦 Share X</button>
+                    <button class="btn btn-secondary" onclick="shareTG()">💬 Share TG</button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalRefs">0</div>
+                        <div class="stat-label">Total Refs</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="activeRefs">0</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat" style="grid-column: 1/-1;">
+                        <div class="stat-value" id="boostPercent">0%</div>
+                        <div class="stat-label">Your Boost</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- WALLET TAB -->
+        <div id="wallet" class="tab-content">
+            <div class="card">
+                <div class="card-title">Connect Wallets</div>
+                
+                <div class="input-group">
+                    <label>Solana Wallet</label>
+                    <input type="text" id="solanaWallet" placeholder="So1...">
+                    <button class="btn btn-secondary" onclick="connectSolana()">Connect Solana</button>
+                    <div style="font-size: 11px; color: #999; margin-top: 5px;" id="solanaStatus">Not connected</div>
+                </div>
+                
+                <div class="input-group">
+                    <label>BASE Wallet</label>
+                    <input type="text" id="baseWallet" placeholder="0x...">
+                    <button class="btn btn-secondary" onclick="connectBase()">Connect BASE</button>
+                    <div style="font-size: 11px; color: #999; margin-top: 5px;" id="baseStatus">Not connected</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ===== FIREBASE INIT =====
+        const firebaseConfig = {
+            apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+            authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+            databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+            projectId: "cyrusprotocol-b3080",
+            storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+            messagingSenderId: "457843406848",
+            appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        // ===== GLOBALS =====
+        let tg = window.Telegram.WebApp;
+        let user = null;
+        let userId = null;
+        let countdownInterval = null;
+        
+        const MINING_TIME = 3 * 3600; // 3 hours
+        const WELCOME_BONUS = 20;
+        
+        const LEVELS = {
+            0: { name: 'Beginner', minCoins: 0, multiplier: 1 },
+            1: { name: 'Silver', minCoins: 1000, multiplier: 3 },
+            2: { name: 'Gold', minCoins: 4000, multiplier: 9 },
+            3: { name: 'Platinum', minCoins: 13000, multiplier: 27 },
+            4: { name: 'Diamond', minCoins: 40000, multiplier: 81 }
+        };
+        
+        // ===== INIT =====
+        window.addEventListener('load', async () => {
+            tg.ready();
+            tg.expand();
+            
+            const telegramUser = tg.initDataUnsafe?.user;
+            userId = telegramUser?.id?.toString() || 'demo_' + Math.random().toString(36).substr(7);
+            
+            await initUser();
+            startCountdown();
+            loadTasks();
+        });
+        
+        // ===== USER INIT =====
+        async function initUser() {
+            try {
+                const ref = db.ref('users/' + userId);
+                const snap = await ref.once('value');
+                
+                if (snap.exists()) {
+                    user = snap.val();
+                } else {
+                    user = {
+                        userId: userId,
+                        username: tg.initDataUnsafe?.user?.first_name || 'User',
+                        coins: WELCOME_BONUS,
+                        totalEarned: WELCOME_BONUS,
+                        pending: 0,
+                        lastMine: Math.floor(Date.now() / 1000),
+                        level: 0,
+                        solanaWallet: '',
+                        baseWallet: '',
+                        refCode: 'LDOGE' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+                        totalRefs: 0,
+                        activeRefs: 0,
+                        boost: 0,
+                        tasks: {},
+                        created: Math.floor(Date.now() / 1000)
+                    };
+                    
+                    await ref.set(user);
+                }
+                
+                updateUI();
+            } catch (e) {
+                console.error('Init error:', e);
+                showMsg('Error initializing: ' + e.message, 'error');
+            }
+        }
+        
+        // ===== UPDATE UI =====
+        function updateUI() {
+            if (!user) return;
+            
+            const level = LEVELS[user.level] || LEVELS[0];
+            
+            document.getElementById('balance').textContent = user.coins || 0;
+            document.getElementById('levelInfo').textContent = level.name + ' (Level ' + user.level + ')';
+            document.getElementById('speedBoost').textContent = Math.round((user.boost || 0) * 100) + '%';
+            document.getElementById('referrals').textContent = user.totalRefs || 0;
+            document.getElementById('multiplier').textContent = (level.multiplier || 1) + 'x';
+            
+            const tasksDone = Object.keys(user.tasks || {}).length;
+            document.getElementById('tasks').textContent = tasksDone + '/3';
+            
+            // Invite tab
+            document.getElementById('refLink').textContent = 'https://t.me/littledoge_bot?start=' + user.refCode;
+            document.getElementById('totalRefs').textContent = user.totalRefs || 0;
+            document.getElementById('activeRefs').textContent = user.activeRefs || 0;
+            document.getElementById('boostPercent').textContent = Math.round((user.boost || 0) * 100) + '%';
+            
+            // Wallet
+            if (user.solanaWallet) {
+                document.getElementById('solanaStatus').textContent = '✅ Connected: ' + user.solanaWallet.substring(0, 8) + '...';
+            }
+            if (user.baseWallet) {
+                document.getElementById('baseStatus').textContent = '✅ Connected: ' + user.baseWallet.substring(0, 8) + '...';
+            }
+        }
+        
+        // ===== COUNTDOWN =====
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+        
+        function updateCountdown() {
+            if (!user) return;
+            
+            const level = LEVELS[user.level] || LEVELS[0];
+            const mult = level.multiplier || 1;
+            const boost = user.boost || 0;
+            const adjTime = MINING_TIME * (1 - boost);
+            
+            const now = Math.floor(Date.now() / 1000);
+            const passed = now - (user.lastMine || now);
+            const left = Math.max(0, adjTime - passed);
+            
+            const h = Math.floor(left / 3600);
+            const m = Math.floor((left % 3600) / 60);
+            const s = left % 60;
+            
+            document.getElementById('countdown').textContent = 
+                String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            
+            const reward = 5 * mult;
+            
+            if (left <= 0) {
+                const newPending = (user.pending || 0) + reward;
+                document.getElementById('pending').textContent = newPending;
+                document.getElementById('multiplierText').textContent = mult + 'x multiplier (' + reward + ' coins)';
+                document.getElementById('claimBtn').disabled = false;
+                document.getElementById('claimBtn').textContent = '🎁 CLAIM ' + newPending + ' COINS';
+            } else {
+                document.getElementById('pending').textContent = user.pending || 0;
+                document.getElementById('multiplierText').textContent = mult + 'x multiplier (' + reward + ' coins)';
+                document.getElementById('claimBtn').disabled = true;
+                document.getElementById('claimBtn').textContent = '⏳ MINING IN PROGRESS';
+            }
+        }
+        
+        // ===== CLAIM MINING =====
+        async function claimMining() {
+            if (!user) return;
+            
+            try {
+                const level = LEVELS[user.level] || LEVELS[0];
+                const mult = level.multiplier || 1;
+                const claimed = (user.pending || 0) + (5 * mult);
+                const newCoins = (user.coins || 0) + claimed;
+                const newEarned = (user.totalEarned || 0) + claimed;
+                const newLevel = getLevel(newEarned);
+                
+                await db.ref('users/' + userId).update({
+                    coins: newCoins,
+                    totalEarned: newEarned,
+                    pending: 0,
+                    lastMine: Math.floor(Date.now() / 1000),
+                    level: newLevel
+                });
+                
+                user.coins = newCoins;
+                user.totalEarned = newEarned;
+                user.pending = 0;
+                user.lastMine = Math.floor(Date.now() / 1000);
+                user.level = newLevel;
+                
+                updateUI();
+                updateCountdown();
+                showMsg('✅ Claimed ' + claimed + ' coins!', 'success');
+            } catch (e) {
+                console.error('Claim error:', e);
+                showMsg('Error: ' + e.message, 'error');
+            }
+        }
+        
+        function getLevel(total) {
+            for (let i = 4; i >= 0; i--) {
+                if (total >= LEVELS[i].minCoins) return i;
+            }
+            return 0;
+        }
+        
+        // ===== TASKS =====
+        function loadTasks() {
+            const tasks = [
+                { id: 'follow_x', icon: '🐦', name: 'Follow X', desc: 'Follow @LittleDogecoin', url: 'https://x.com/LittleDogecoin', reward: 5 },
+                { id: 'join_tg', icon: '💬', name: 'Join Telegram', desc: 'Join @Little_Doge_coin', url: 'https://t.me/Little_Doge_coin', reward: 5 },
+                { id: 'visit_web', icon: '🌐', name: 'Visit Website', desc: 'Visit littledogecharity.online', url: 'https://littledogecharity.online/', reward: 5 }
+            ];
+            
+            let html = '';
+            const completed = user.tasks || {};
+            
+            tasks.forEach(t => {
+                const done = t.id in completed;
+                html += `
+                    <div class="task-item">
+                        <div class="task-name">${t.icon} ${t.name}</div>
+                        <div class="task-desc">${t.desc}</div>
+                        <button class="btn btn-secondary btn-small" onclick="completeTask('${t.id}', '${t.url}')" ${done ? 'disabled' : ''}>
+                            ${done ? '✓ Done' : 'Complete'}
+                        </button>
+                        <div class="task-reward">${done ? '✅ Completed' : '+' + t.reward + ' coins'}</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('tasksContainer').innerHTML = html;
+        }
+        
+        async function completeTask(taskId, url) {
+            if (!user) return;
+            
+            const tasks = user.tasks || {};
+            if (taskId in tasks) {
+                showMsg('Already completed', 'error');
+                return;
+            }
+            
+            window.open(url, '_blank');
+            
+            try {
+                tasks[taskId] = { done: Math.floor(Date.now() / 1000) };
+                
+                await db.ref('users/' + userId).update({
+                    tasks: tasks
+                });
+                
+                user.tasks = tasks;
+                loadTasks();
+                updateUI();
+                showMsg('✅ Task marked complete!', 'success');
+            } catch (e) {
+                console.error('Task error:', e);
+                showMsg('Error: ' + e.message, 'error');
+            }
+        }
+        
+        // ===== WALLET =====
+        async function connectSolana() {
+            const wallet = document.getElementById('solanaWallet').value.trim();
+            if (!wallet) {
+                showMsg('Enter Solana wallet', 'error');
+                return;
+            }
+            
+            try {
+                await db.ref('users/' + userId).update({ solanaWallet: wallet });
+                user.solanaWallet = wallet;
+                updateUI();
+                showMsg('✅ Solana wallet connected!', 'success');
+            } catch (e) {
+                showMsg('Error: ' + e.message, 'error');
+            }
+        }
+        
+        async function connectBase() {
+            const wallet = document.getElementById('baseWallet').value.trim();
+            if (!wallet) {
+                showMsg('Enter BASE wallet', 'error');
+                return;
+            }
+            
+            try {
+                await db.ref('users/' + userId).update({ baseWallet: wallet });
+                user.baseWallet = wallet;
+                updateUI();
+                showMsg('✅ BASE wallet connected!', 'success');
+            } catch (e) {
+                showMsg('Error: ' + e.message, 'error');
+            }
+        }
+        
+        // ===== REFERRAL =====
+        function copyRef() {
+            const link = document.getElementById('refLink').textContent;
+            navigator.clipboard.writeText(link);
+            showMsg('✅ Copied!', 'success');
+        }
+        
+        function shareX() {
+            const link = document.getElementById('refLink').textContent;
+            const text = 'Join LITTLE DOGE CHARITY! 🐕\n\n⛏️ Mine $LDOGE\n✅ Tasks = Rewards\n👥 Invite Friends\n\n' + link;
+            window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+        }
+        
+        function shareTG() {
+            const link = document.getElementById('refLink').textContent;
+            window.open('https://t.me/share/url?url=' + encodeURIComponent(link), '_blank');
+        }
+        
+        // ===== TAB SWITCHING =====
+        function openTab(name, btn) {
+            document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+            
+            document.getElementById(name).classList.add('active');
+            btn.classList.add('active');
+        }
+        
+        // ===== MESSAGES =====
+        function showMsg(text, type) {
+            const div = document.createElement('div');
+            div.className = 'message ' + type;
+            div.textContent = text;
+            document.getElementById('message').appendChild(div);
+            
+            setTimeout(() => div.remove(), 2500);
+        }
+    </script>
+</body>
+</html>
