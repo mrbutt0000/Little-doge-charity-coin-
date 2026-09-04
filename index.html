@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>$LDOGE - Ultimate Mini App</title>
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Firebase App & Firestore SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
@@ -16,14 +14,6 @@
         
         .tab-content { display: none !important; padding: 20px 16px; flex: 1; }
         .tab-content.active { display: block !important; }
-
-        /* Clean Logo Splash Screen */
-        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0f19; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.4s ease; }
-        @keyframes scaleLogo {
-            0% { transform: scale(0.9); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
 
         /* Header Balance */
         .balance-header { text-align: center; margin-top: 10px; margin-bottom: 24px; }
@@ -68,16 +58,6 @@
 </head>
 <body>
 
-<!-- CLEAN LOGO SPLASH SCREEN -->
-<div id="splashScreen">
-    <div style="text-align: center; animation: scaleLogo 1s ease infinite alternate;">
-        <div style="width: 120px; height: 120px; margin: 0 auto; background: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);">
-            <span style="font-size: 60px;">🐶</span>
-        </div>
-        <h2 style="color: #ffffff; font-size: 20px; font-weight: bold; margin-top: 16px; letter-spacing: 1px;">Little Doge ($LDOGE)</h2>
-    </div>
-</div>
-
 <!-- Professional Toast Popup Element -->
 <div id="toast">Notification message</div>
 
@@ -105,7 +85,7 @@
         <div id="boostContainer"></div>
     </div>
 
-    <!-- 3. TASKS TAB -->
+    <!-- 3. TASKS TAB (30 Seconds Wait System) -->
     <div id="tab-tasks" class="tab-content">
         <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🎯 Task Center</h2>
         
@@ -114,7 +94,7 @@
                 <h4>Follow on X (Twitter)</h4>
                 <p>Reward: +25 Coins</p>
             </div>
-            <button onclick="completeTask('task1', 'https://x.com/LittleDogecoin', 25)" class="task-action-btn" id="task1Btn">Start</button>
+            <button onclick="startTaskTimer('task1', 'https://x.com/LittleDogecoin', 25)" class="task-action-btn" id="task1Btn">Start</button>
         </div>
 
         <div class="card-item">
@@ -122,7 +102,7 @@
                 <h4>Join Telegram Channel</h4>
                 <p>Reward: +25 Coins</p>
             </div>
-            <button onclick="completeTask('task2', 'https://t.me/Little_Doge_coin', 25)" class="task-action-btn" id="task2Btn">Start</button>
+            <button onclick="startTaskTimer('task2', 'https://t.me/Little_Doge_coin', 25)" class="task-action-btn" id="task2Btn">Start</button>
         </div>
 
         <div class="card-item">
@@ -130,7 +110,7 @@
                 <h4>Visit Official Website</h4>
                 <p>Reward: +20 Coins</p>
             </div>
-            <button onclick="completeTask('task3', 'https://littledogecharity.online/', 20)" class="task-action-btn" id="task3Btn">Start</button>
+            <button onclick="startTaskTimer('task3', 'https://littledogecharity.online/', 20)" class="task-action-btn" id="task3Btn">Start</button>
         </div>
     </div>
 
@@ -182,19 +162,6 @@
 </div>
 
 <script>
-    // Independent Safety Timeout: Guaranteed to open app after 1.8 seconds max
-    let splashHidden = false;
-    function hideSplash() {
-        if (splashHidden) return;
-        splashHidden = true;
-        const splash = document.getElementById('splashScreen');
-        if (splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 400);
-        }
-    }
-    setTimeout(hideSplash, 1800);
-
     function showToast(message) {
         const toast = document.getElementById('toast');
         if(!toast) return;
@@ -226,6 +193,13 @@
         const tg = window.Telegram.WebApp;
         if (tg.initDataUnsafe.user) { userId = "tg_" + tg.initDataUnsafe.user.id; }
         if (tg.initDataUnsafe.start_param) { inviterId = tg.initDataUnsafe.start_param; }
+    }
+
+    // Single Device Security: Device Fingerprint & LocalStorage Lock
+    let deviceId = localStorage.getItem('ldoge_device_id');
+    if (!deviceId) {
+        deviceId = "dev_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+        localStorage.setItem('ldoge_device_id', deviceId);
     }
 
     if (!userId) {
@@ -335,9 +309,10 @@
     const db = firebase.firestore();
     const userDocRef = db.collection('users').doc(userId);
 
-    // Firestore Realtime Listener with Robust Referral Management
-    userDocRef.onSnapshot(async (doc) => {
+    // Fast Data Loader
+    async function initUserData() {
         try {
+            const doc = await userDocRef.get();
             if (doc.exists) {
                 const data = doc.data();
                 balance = data.balance !== undefined ? data.balance : 10;
@@ -350,4 +325,193 @@
                 const balanceDisplay = document.getElementById('balanceDisplay');
                 if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
                 
-                const solInput = docu
+                const solInput = document.getElementById('solAddressInput');
+                if (data.solWallet && solInput) solInput.value = data.solWallet;
+                
+                const baseInput = document.getElementById('baseAddressInput');
+                if (data.baseWallet && baseInput) baseInput.value = data.baseWallet;
+
+                checkMiningTimer();
+                renderBooster();
+                updateTasksUI();
+                renderFriendsList();
+            } else {
+                let assignedInviter = null;
+                if (inviterId && inviterId !== userId) {
+                    assignedInviter = inviterId;
+                    const inviterDocRef = db.collection('users').doc(inviterId);
+                    try {
+                        await db.runTransaction(async (transaction) => {
+                            const invDoc = await transaction.get(inviterDocRef);
+                            if (invDoc.exists) {
+                                let invData = invDoc.data();
+                                let currentFriends = invData.friends || [];
+                                let currentBalance = invData.balance || 0;
+                                
+                                // Anti-Cheat: Check if device already used for this inviter or overall
+                                if (!currentFriends.includes(userId)) {
+                                    currentFriends.push(userId);
+                                    transaction.update(inviterDocRef, {
+                                        balance: currentBalance + 20,
+                                        friends: currentFriends
+                                    });
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        console.log("Referral transaction error");
+                    }
+                }
+
+                await userDocRef.set({ 
+                    balance: 10, 
+                    miningEndTime: 0, 
+                    profitPerHour: 0, 
+                    boosterLevel: 0, 
+                    completedTasks: {}, 
+                    friends: [],
+                    invitedBy: assignedInviter,
+                    deviceId: deviceId,
+                    solWallet: "",
+                    baseWallet: ""
+                });
+            }
+        } catch(e) {
+            console.log("Firestore error handled");
+        }
+    }
+
+    initUserData();
+
+    function handleClaim() {
+        balance += 5;
+        miningEndTime = Math.floor(Date.now() / 1000) + CLAIM_DURATION;
+        
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
+
+        userDocRef.update({ 
+            balance: balance, 
+            miningEndTime: miningEndTime 
+        }).then(() => {
+            showToast("Successfully claimed 5 coins! 🎉");
+        });
+
+        startCountdown(CLAIM_DURATION);
+    }
+
+    function checkMiningTimer() {
+        const now = Math.floor(Date.now() / 1000);
+        if (miningEndTime > now) {
+            startCountdown(miningEndTime - now);
+        } else {
+            resetTimerUI();
+        }
+    }
+
+    function startCountdown(durationSeconds) {
+        if (timerInterval) clearInterval(timerInterval);
+        const btn = document.getElementById('claimBtn');
+        const statusText = document.getElementById('miningStatusText');
+        if(statusText) statusText.innerText = "Mining in Progress ⏳";
+        if(btn) btn.disabled = true;
+
+        let timeLeft = durationSeconds;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const h = Math.floor(timeLeft / 3600);
+            const m = Math.floor((timeLeft % 3600) / 60);
+            const s = timeLeft % 60;
+            const timerDisp = document.getElementById('timerDisplay');
+            if(timerDisp) {
+                timerDisp.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                resetTimerUI();
+            }
+        }, 1000);
+    }
+
+    function resetTimerUI() {
+        const statusText = document.getElementById('miningStatusText');
+        const timerDisp = document.getElementById('timerDisplay');
+        const btn = document.getElementById('claimBtn');
+        if(statusText) statusText.innerText = "Ready to Claim";
+        if(timerDisp) timerDisp.innerText = "03:00:00";
+        if(btn) btn.disabled = false;
+    }
+
+    // 30 Seconds Task Timer System
+    function startTaskTimer(taskKey, url, reward) {
+        if (completedTasks[taskKey]) return;
+        window.open(url, '_blank');
+        
+        const btn = document.getElementById(taskKey + 'Btn');
+        if(!btn) return;
+        
+        btn.disabled = true;
+        let timeLeft = 30;
+        btn.innerText = `Wait ${timeLeft}s ⏳`;
+
+        let taskInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                btn.innerText = `Wait ${timeLeft}s ⏳`;
+            } else {
+                clearInterval(taskInterval);
+                balance += reward;
+                completedTasks[taskKey] = true;
+                
+                const balanceDisplay = document.getElementById('balanceDisplay');
+                if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
+                updateTasksUI();
+
+                userDocRef.update({ balance: balance, completedTasks: completedTasks }).then(() => {
+                    showToast(`Task completed! +${reward} Coins added 🎯`);
+                });
+            }
+        }, 1000);
+    }
+
+    setInterval(() => {
+        if (profitPerHour > 0) {
+            balance += profitPerHour / 3600;
+            const balanceDisplay = document.getElementById('balanceDisplay');
+            if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
+        }
+    }, 1000);
+
+    setInterval(() => {
+        userDocRef.update({ balance: balance });
+    }, 5000);
+
+    function copyRefLink() {
+        const copyText = document.getElementById('refLink');
+        if(!copyText) return;
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        showToast("Invite link copied to clipboard! 🔗");
+    }
+
+    function saveSolWallet() {
+        const solInput = document.getElementById('solAddressInput');
+        if(!solInput) return;
+        const addr = solInput.value.trim();
+        if (addr.length < 10) { showToast("⚠️ Please enter a valid Solana address!"); return; }
+        userDocRef.update({ solWallet: addr });
+        showToast("Solana Wallet Saved Successfully! 🪐");
+    }
+
+    function saveBaseWallet() {
+        const baseInput = document.getElementById('baseAddressInput');
+        if(!baseInput) return;
+        const addr = baseInput.value.trim();
+        if (addr.length < 10) { showToast("⚠️ Please enter a valid Base address!"); return; }
+        userDocRef.update({ baseWallet: addr });
+        showToast("Base Wallet Saved Successfully! 🔵");
+    }
+</script>
+</body>
+</html>
