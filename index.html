@@ -6,9 +6,9 @@
     <title>$LDOGE - Ultimate Mini App</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Firebase Compat SDKs -->
+    <!-- Firebase App & Firestore SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none; }
         body { background: #12161f; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
@@ -16,6 +16,14 @@
         
         .tab-content { display: none !important; padding: 20px 16px; flex: 1; }
         .tab-content.active { display: block !important; }
+
+        /* Clean Logo Splash Screen */
+        #splashScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0f19; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.4s ease; }
+        @keyframes scaleLogo {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
         /* Header Balance */
         .balance-header { text-align: center; margin-top: 10px; margin-bottom: 24px; }
@@ -60,6 +68,16 @@
 </head>
 <body>
 
+<!-- CLEAN LOGO SPLASH SCREEN -->
+<div id="splashScreen">
+    <div style="text-align: center; animation: scaleLogo 1s ease infinite alternate;">
+        <div style="width: 120px; height: 120px; margin: 0 auto; background: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid #f59e0b; box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);">
+            <span style="font-size: 60px;">🐶</span>
+        </div>
+        <h2 style="color: #ffffff; font-size: 20px; font-weight: bold; margin-top: 16px; letter-spacing: 1px;">Little Doge ($LDOGE)</h2>
+    </div>
+</div>
+
 <!-- Professional Toast Popup Element -->
 <div id="toast">Notification message</div>
 
@@ -81,7 +99,7 @@
         </div>
     </div>
 
-    <!-- 2. BOOSTS TAB (Level Upgrade up to Level 20) -->
+    <!-- 2. BOOSTS TAB -->
     <div id="tab-boosts" class="tab-content">
         <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">⚡ Mining Speed Booster</h2>
         <div id="boostContainer"></div>
@@ -164,36 +182,36 @@
 </div>
 
 <script>
+    let splashHidden = false;
+    function hideSplash() {
+        if (splashHidden) return;
+        splashHidden = true;
+        const splash = document.getElementById('splashScreen');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 400);
+        }
+    }
+    setTimeout(hideSplash, 1500);
+
     function showToast(message) {
         const toast = document.getElementById('toast');
         if(!toast) return;
         toast.innerText = message;
         toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 2500);
+        setTimeout(() => { toast.classList.remove('show'); }, 2500);
     }
 
     function switchTab(tabId, btnElement) {
         const tabs = ['farm', 'boosts', 'tasks', 'frens', 'wallet'];
         tabs.forEach(t => {
             const el = document.getElementById('tab-' + t);
-            if (el) {
-                el.classList.remove('active');
-                el.style.display = 'none';
-            }
+            if (el) { el.classList.remove('active'); el.style.display = 'none'; }
         });
-        
         document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-        
         const target = document.getElementById('tab-' + tabId);
-        if (target) {
-            target.classList.add('active');
-            target.style.display = 'block';
-        }
-        if (btnElement) {
-            btnElement.classList.add('active');
-        }
+        if (target) { target.classList.add('active'); target.style.display = 'block'; }
+        if (btnElement) { btnElement.classList.add('active'); }
     }
 
     const botUsername = "Littledogecoinbot";
@@ -201,18 +219,12 @@
     let inviterId = null;
 
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('start')) {
-        inviterId = urlParams.get('start');
-    }
+    if (urlParams.has('start')) { inviterId = urlParams.get('start'); }
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
         const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe.user) {
-            userId = "tg_" + tg.initDataUnsafe.user.id;
-        }
-        if (tg.initDataUnsafe.start_param) {
-            inviterId = tg.initDataUnsafe.start_param;
-        }
+        if (tg.initDataUnsafe.user) { userId = "tg_" + tg.initDataUnsafe.user.id; }
+        if (tg.initDataUnsafe.start_param) { inviterId = tg.initDataUnsafe.start_param; }
     }
 
     if (!userId) {
@@ -236,64 +248,37 @@
     const CLAIM_DURATION = 3 * 60 * 60;
 
     const boosterLevels = [
-        { level: 1, cost: 250, speed: 0.5 },
-        { level: 2, cost: 800, speed: 1.0 },
-        { level: 3, cost: 2000, speed: 1.5 },
-        { level: 4, cost: 4500, speed: 2.0 },
-        { level: 5, cost: 9000, speed: 2.5 },
-        { level: 6, cost: 16000, speed: 3.0 },
-        { level: 7, cost: 28000, speed: 3.5 },
-        { level: 8, cost: 45000, speed: 4.0 },
-        { level: 9, cost: 70000, speed: 4.5 },
-        { level: 10, cost: 100000, speed: 5.0 },
-        { level: 11, cost: 150000, speed: 5.5 },
-        { level: 12, cost: 220000, speed: 6.0 },
-        { level: 13, cost: 300000, speed: 6.5 },
-        { level: 14, cost: 400000, speed: 7.0 },
-        { level: 15, cost: 550000, speed: 7.5 },
-        { level: 16, cost: 750000, speed: 8.0 },
-        { level: 17, cost: 1000000, speed: 8.5 },
-        { level: 18, cost: 1350000, speed: 9.0 },
-        { level: 19, cost: 1800000, speed: 9.5 },
-        { level: 20, cost: 2500000, speed: 10.0 }
+        { level: 1, cost: 250, speed: 0.5 }, { level: 2, cost: 800, speed: 1.0 },
+        { level: 3, cost: 2000, speed: 1.5 }, { level: 4, cost: 4500, speed: 2.0 },
+        { level: 5, cost: 9000, speed: 2.5 }, { level: 6, cost: 16000, speed: 3.0 },
+        { level: 7, cost: 28000, speed: 3.5 }, { level: 8, cost: 45000, speed: 4.0 },
+        { level: 9, cost: 70000, speed: 4.5 }, { level: 10, cost: 100000, speed: 5.0 },
+        { level: 11, cost: 150000, speed: 5.5 }, { level: 12, cost: 220000, speed: 6.0 },
+        { level: 13, cost: 300000, speed: 6.5 }, { level: 14, cost: 400000, speed: 7.0 },
+        { level: 15, cost: 550000, speed: 7.5 }, { level: 16, cost: 750000, speed: 8.0 },
+        { level: 17, cost: 1000000, speed: 8.5 }, { level: 18, cost: 1350000, speed: 9.0 },
+        { level: 19, cost: 1800000, speed: 9.5 }, { level: 20, cost: 2500000, speed: 10.0 }
     ];
 
     function renderBooster() {
         const container = document.getElementById('boostContainer');
         if (!container) return;
-
         if (boosterLevel >= 20) {
-            container.innerHTML = `
-                <div class="card-item" style="flex-direction: column; text-align: center; padding: 24px;">
-                    <h4>🚀 Max Level Reached!</h4>
-                    <p style="margin-top: 8px; color: #38bdf8;">Your booster is at Level 20 (Max Speed +10.0x)</p>
-                </div>`;
+            container.innerHTML = `<div class="card-item" style="flex-direction: column; text-align: center; padding: 24px;"><h4>🚀 Max Level Reached!</h4><p style="margin-top: 8px; color: #38bdf8;">Your booster is at Level 20 (Max Speed +10.0x)</p></div>`;
             return;
         }
-
         const nextLevelData = boosterLevels[boosterLevel];
-        let html = `
-            <div class="card-item">
-                <div class="card-info">
-                    <h4>Mining Speed Upgrade (Lvl ${nextLevelData.level}/20)</h4>
-                    <p>Speed Bonus: +${nextLevelData.speed}x</p>
-                    <span>Cost: ${nextLevelData.cost.toLocaleString()} Coins</span>
-                </div>
-                <button onclick="upgradeBooster()" class="upgrade-btn">Upgrade</button>
-            </div>`;
-        container.innerHTML = html;
+        container.innerHTML = `<div class="card-item"><div class="card-info"><h4>Mining Speed Upgrade (Lvl ${nextLevelData.level}/20)</h4><p>Speed Bonus: +${nextLevelData.speed}x</p><span>Cost: ${nextLevelData.cost.toLocaleString()} Coins</span></div><button onclick="upgradeBooster()" class="upgrade-btn">Upgrade</button></div>`;
     }
 
     function upgradeBooster() {
         if (boosterLevel >= 20) return;
         const nextLevelData = boosterLevels[boosterLevel];
-
         if (balance >= nextLevelData.cost) {
             balance -= nextLevelData.cost;
             boosterLevel++;
             profitPerHour = nextLevelData.speed * 100;
-
-            userRef.update({ balance: balance, boosterLevel: boosterLevel, profitPerHour: profitPerHour });
+            userDocRef.update({ balance: balance, boosterLevel: boosterLevel, profitPerHour: profitPerHour });
             renderBooster();
             showToast(`Booster upgraded to Level ${boosterLevel}! 🚀`);
         } else {
@@ -313,13 +298,9 @@
             container.innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:12px;">No friends invited yet. Share your link!</p>';
             return;
         }
-
         let html = '';
         friendsList.forEach((f) => {
-            html += `<div class="referral-item">
-                <span>👤 ${f}</span>
-                <span style="color: #34d399; font-weight: bold;">+20 Coins</span>
-            </div>`;
+            html += `<div class="referral-item"><span>👤 ${f}</span><span style="color: #34d399; font-weight: bold;">+20 Coins</span></div>`;
         });
         container.innerHTML = html;
     }
@@ -350,13 +331,14 @@
     };
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const userRef = db.ref('users/' + userId);
+    const db = firebase.firestore();
+    const userDocRef = db.collection('users').doc(userId);
 
-    userRef.once('value', (snapshot) => {
+    // Firestore Realtime Listener with Robust Referral Management
+    userDocRef.onSnapshot(async (doc) => {
         try {
-            const data = snapshot.val();
-            if (data) {
+            if (doc.exists) {
+                const data = doc.data();
                 balance = data.balance !== undefined ? data.balance : 10;
                 miningEndTime = data.miningEndTime || 0;
                 profitPerHour = data.profitPerHour || 0;
@@ -368,160 +350,4 @@
                 if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
                 
                 const solInput = document.getElementById('solAddressInput');
-                if (data.solWallet && solInput) solInput.value = data.solWallet;
-                
-                const baseInput = document.getElementById('baseAddressInput');
-                if (data.baseWallet && baseInput) baseInput.value = data.baseWallet;
-
-                checkMiningTimer();
-                renderBooster();
-                updateTasksUI();
-                renderFriendsList();
-            } else {
-                if (inviterId && inviterId !== userId) {
-                    const inviterRef = db.ref('users/' + inviterId);
-                    inviterRef.once('value', (invSnap) => {
-                        let invData = invSnap.val() || { balance: 0, friends: [] };
-                        let currentFriends = invData.friends || [];
-                        if (!currentFriends.includes(userId)) {
-                            currentFriends.push(userId);
-                            let newInviterBalance = (invData.balance || 0) + 20;
-
-                            inviterRef.update({
-                                balance: newInviterBalance,
-                                friends: currentFriends
-                            });
-                        }
-                    });
-                }
-
-                userRef.set({ 
-                    balance: 10, 
-                    miningEndTime: 0, 
-                    profitPerHour: 0, 
-                    boosterLevel: 0, 
-                    completedTasks: {}, 
-                    friends: [],
-                    invitedBy: inviterId || null
-                });
-            }
-        } catch(e) {
-            console.log("Firebase sync handled safely");
-        }
-    });
-
-    function handleClaim() {
-        balance += 5;
-        miningEndTime = Math.floor(Date.now() / 1000) + CLAIM_DURATION;
-        
-        const balanceDisplay = document.getElementById('balanceDisplay');
-        if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-
-        userRef.update({ 
-            balance: balance, 
-            miningEndTime: miningEndTime 
-        });
-        
-        startCountdown(CLAIM_DURATION);
-        showToast("Successfully claimed 5 coins! 🎉");
-    }
-
-    function checkMiningTimer() {
-        const now = Math.floor(Date.now() / 1000);
-        if (miningEndTime > now) {
-            startCountdown(miningEndTime - now);
-        } else {
-            resetTimerUI();
-        }
-    }
-
-    function startCountdown(durationSeconds) {
-        if (timerInterval) clearInterval(timerInterval);
-        const btn = document.getElementById('claimBtn');
-        const statusText = document.getElementById('miningStatusText');
-        if(statusText) statusText.innerText = "Mining in Progress ⏳";
-        if(btn) btn.disabled = true;
-
-        let timeLeft = durationSeconds;
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            const h = Math.floor(timeLeft / 3600);
-            const m = Math.floor((timeLeft % 3600) / 60);
-            const s = timeLeft % 60;
-            const timerDisp = document.getElementById('timerDisplay');
-            if(timerDisp) {
-                timerDisp.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            }
-
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                resetTimerUI();
-            }
-        }, 1000);
-    }
-
-    function resetTimerUI() {
-        const statusText = document.getElementById('miningStatusText');
-        const timerDisp = document.getElementById('timerDisplay');
-        const btn = document.getElementById('claimBtn');
-        if(statusText) statusText.innerText = "Ready to Claim";
-        if(timerDisp) timerDisp.innerText = "03:00:00";
-        if(btn) btn.disabled = false;
-    }
-
-    function completeTask(taskKey, url, reward) {
-        if (completedTasks[taskKey]) return;
-        window.open(url, '_blank');
-        setTimeout(() => {
-            balance += reward;
-            completedTasks[taskKey] = true;
-            
-            const balanceDisplay = document.getElementById('balanceDisplay');
-            if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-
-            userRef.update({ balance: balance, completedTasks: completedTasks });
-            updateTasksUI();
-            showToast(`Task completed! +${reward} Coins added 🎯`);
-        }, 2000);
-    }
-
-    setInterval(() => {
-        if (profitPerHour > 0) {
-            balance += profitPerHour / 3600;
-            const balanceDisplay = document.getElementById('balanceDisplay');
-            if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-        }
-    }, 1000);
-
-    setInterval(() => {
-        userRef.update({ balance: balance });
-    }, 5000);
-
-    function copyRefLink() {
-        const copyText = document.getElementById('refLink');
-        if(!copyText) return;
-        copyText.select();
-        navigator.clipboard.writeText(copyText.value);
-        showToast("Invite link copied to clipboard! 🔗");
-    }
-
-    function saveSolWallet() {
-        const solInput = document.getElementById('solAddressInput');
-        if(!solInput) return;
-        const addr = solInput.value.trim();
-        if (addr.length < 10) { showToast("⚠️ Please enter a valid Solana address!"); return; }
-        userRef.update({ solWallet: addr });
-        showToast("Solana Wallet Saved Successfully! 🪐");
-    }
-
-    function saveBaseWallet() {
-        const baseInput = document.getElementById('baseAddressInput');
-        if(!baseInput) return;
-        const addr = baseInput.value.trim();
-        if (addr.length < 10) { showToast("⚠️ Please enter a valid Base address!"); return; }
-        userRef.update({ baseWallet: addr });
-        showToast("Base Wallet Saved Successfully! 🔵");
-    }
-</script>
-</body>
-</html>
+                if (data.solWallet && so
