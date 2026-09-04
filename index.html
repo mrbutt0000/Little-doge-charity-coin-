@@ -182,6 +182,7 @@
 </div>
 
 <script>
+    // Independent Safety Timeout: Guaranteed to open app after 1.8 seconds max
     let splashHidden = false;
     function hideSplash() {
         if (splashHidden) return;
@@ -192,7 +193,7 @@
             setTimeout(() => { splash.style.display = 'none'; }, 400);
         }
     }
-    setTimeout(hideSplash, 1500);
+    setTimeout(hideSplash, 1800);
 
     function showToast(message) {
         const toast = document.getElementById('toast');
@@ -349,5 +350,4 @@
                 const balanceDisplay = document.getElementById('balanceDisplay');
                 if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
                 
-                const solInput = document.getElementById('solAddressInput');
-                if (data.solWallet && so
+                const solInput = docu
