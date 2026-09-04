@@ -185,17 +185,20 @@
     const botUsername = "Littledogecoinbot";
     let userId = null;
     let inviterId = null;
+    let tgUsername = "";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('start')) { inviterId = urlParams.get('start'); }
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
         const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe.user) { userId = "tg_" + tg.initDataUnsafe.user.id; }
+        if (tg.initDataUnsafe.user) { 
+            tgUsername = tg.initDataUnsafe.user.username || "";
+            userId = tgUsername ? "u_" + tgUsername.toLowerCase() : "tg_" + tg.initDataUnsafe.user.id; 
+        }
         if (tg.initDataUnsafe.start_param) { inviterId = tg.initDataUnsafe.start_param; }
     }
 
-    // Single Device Security: Device Fingerprint & LocalStorage Lock
     let deviceId = localStorage.getItem('ldoge_device_id');
     if (!deviceId) {
         deviceId = "dev_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
@@ -210,8 +213,9 @@
         }
     }
 
+    const refKeyForLink = tgUsername || userId;
     const refLinkInput = document.getElementById('refLink');
-    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${userId}`;
+    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${refKeyForLink}`;
 
     let balance = 10;
     let miningEndTime = 0;
@@ -309,7 +313,6 @@
     const db = firebase.firestore();
     const userDocRef = db.collection('users').doc(userId);
 
-    // Fast Data Loader
     async function initUserData() {
         try {
             const doc = await userDocRef.get();
@@ -321,6 +324,10 @@
                 boosterLevel = data.boosterLevel || 0;
                 completedTasks = data.completedTasks || {};
                 friendsList = data.friends || [];
+
+                if (tgUsername && (!data.username || data.username !== tgUsername)) {
+                    userDocRef.update({ username: tgUsername });
+                }
 
                 const balanceDisplay = document.getElementById('balanceDisplay');
                 if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
@@ -339,25 +346,33 @@
                 let assignedInviter = null;
                 if (inviterId && inviterId !== userId) {
                     assignedInviter = inviterId;
-                    const inviterDocRef = db.collection('users').doc(inviterId);
+                    let inviterDocRef = db.collection('users').doc(inviterId);
+                    let invDoc = await inviterDocRef.get();
+                    
+                    if (!invDoc.exists) {
+                        const qSnap = await db.collection('users').where('username', '==', inviterId).get();
+                        if (!qSnap.empty) {
+                            inviterDocRef = qSnap.docs[0].ref;
+                            assignedInviter = qSnap.docs[0].id;
+                            invDoc = await inviterDocRef.get();
+                        }
+                    }
+
                     try {
-                        await db.runTransaction(async (transaction) => {
-                            const invDoc = await transaction.get(inviterDocRef);
-                            if (invDoc.exists) {
-                                let invData = invDoc.data();
-                                let currentFriends = invData.friends || [];
-                                let currentBalance = invData.balance || 0;
-                                
-                                // Anti-Cheat: Check if device already used for this inviter or overall
-                                if (!currentFriends.includes(userId)) {
-                                    currentFriends.push(userId);
-                                    transaction.update(inviterDocRef, {
-                                        balance: currentBalance + 20,
-                                        friends: currentFriends
-                                    });
-                                }
+                        if (invDoc.exists) {
+                            let invData = invDoc.data();
+                            let currentFriends = invData.friends || [];
+                            let currentBalance = invData.balance || 0;
+                            const displayName = tgUsername ? `@${tgUsername}` : userId;
+                            
+                            if (!currentFriends.includes(displayName)) {
+                                currentFriends.push(displayName);
+                                await inviterDocRef.update({
+                                    balance: currentBalance + 20,
+                                    friends: currentFriends
+                                });
                             }
-                        });
+                        }
                     } catch (err) {
                         console.log("Referral transaction error");
                     }
@@ -372,6 +387,7 @@
                     friends: [],
                     invitedBy: assignedInviter,
                     deviceId: deviceId,
+                    username: tgUsername || "",
                     solWallet: "",
                     baseWallet: ""
                 });
@@ -443,7 +459,6 @@
         if(btn) btn.disabled = false;
     }
 
-    // 30 Seconds Task Timer System
     function startTaskTimer(taskKey, url, reward) {
         if (completedTasks[taskKey]) return;
         window.open(url, '_blank');
