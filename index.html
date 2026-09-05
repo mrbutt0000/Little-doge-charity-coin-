@@ -12,8 +12,9 @@
         body { background: #12161f; color: #ffffff; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
         .app-container { max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 90px; }
         
-        .tab-content { display: none !important; padding: 20px 16px; flex: 1; }
-        .tab-content.active { display: block !important; }
+        /* Fixed Tab Display Logic */
+        .tab-content { display: none; padding: 20px 16px; flex: 1; }
+        .tab-content.active { display: block; }
 
         /* Header Balance */
         .balance-header { text-align: center; margin-top: 10px; margin-bottom: 24px; }
@@ -314,7 +315,6 @@
     const db = firebase.firestore();
     const userDocRef = db.collection('users').doc(userId);
 
-    // Fast and Safe Data Loader (Fixes tab freezing issue)
     async function initUserData() {
         try {
             const doc = await userDocRef.get();
@@ -354,4 +354,4 @@
                 renderFriendsList();
             } else {
                 let assignedInviter = null;
-     
+                if (inviterId && inviterId !== us
