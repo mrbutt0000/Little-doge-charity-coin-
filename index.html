@@ -58,7 +58,6 @@
 </head>
 <body>
 
-<!-- Professional Toast Popup Element -->
 <div id="toast">Notification message</div>
 
 <div class="app-container">
@@ -85,7 +84,7 @@
         <div id="boostContainer"></div>
     </div>
 
-    <!-- 3. TASKS TAB (30 Seconds Wait System) -->
+    <!-- 3. TASKS TAB -->
     <div id="tab-tasks" class="tab-content">
         <h2 style="font-size: 18px; font-weight: bold; margin-bottom: 14px; color: #f59e0b;">🎯 Task Center</h2>
         
@@ -185,13 +184,17 @@
     const botUsername = "Littledogecoinbot";
     let userId = null;
     let inviterId = null;
+    let tgUsername = "";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('start')) { inviterId = urlParams.get('start'); }
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
         const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe.user) { userId = "tg_" + tg.initDataUnsafe.user.id; }
+        if (tg.initDataUnsafe.user) { 
+            tgUsername = tg.initDataUnsafe.user.username || "";
+            userId = tgUsername ? "u_" + tgUsername.toLowerCase() : "tg_" + tg.initDataUnsafe.user.id; 
+        }
         if (tg.initDataUnsafe.start_param) { inviterId = tg.initDataUnsafe.start_param; }
     }
 
@@ -209,8 +212,9 @@
         }
     }
 
+    const refKeyForLink = tgUsername || userId;
     const refLinkInput = document.getElementById('refLink');
-    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${userId}`;
+    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${refKeyForLink}`;
 
     let balance = 10;
     let miningEndTime = 0;
@@ -310,44 +314,44 @@
     const db = firebase.firestore();
     const userDocRef = db.collection('users').doc(userId);
 
-    // REAL-TIME LISTENER FOR MAINTENANCE & GLOBAL STOP
-    db.collection('settings').doc('appConfig').onSnapshot((doc) => {
-        if (doc.exists) {
-            const config = doc.data();
-            let maintDiv = document.getElementById('maintenanceOverlay');
-            if (config.maintenance) {
-                if (!maintDiv) {
-                    maintDiv = document.createElement('div');
-                    maintDiv.id = 'maintenanceOverlay';
-                    maintDiv.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:99999;text-align:center;padding:20px;";
-                    maintDiv.innerHTML = `<div style="font-size:60px;margin-bottom:15px;">🛠️</div><h2 style="color:#f59e0b;font-size:22px;margin-bottom:10px;">App Under Maintenance</h2><p style="color:#94a3b8;font-size:14px;">We are upgrading our servers. Please check back soon!</p>`;
-                    document.body.appendChild(maintDiv);
-                } else {
-                    maintDiv.style.display = 'flex';
-                }
-            } else {
-                if (maintDiv) maintDiv.style.display = 'none';
-            }
-
-            if (config.globalStop) {
-                miningPaused = true;
-                const statusText = document.getElementById('miningStatusText');
-                const btn = document.getElementById('claimBtn');
-                if(statusText) statusText.innerText = "Global Mining Paused ⛔";
-                if(btn) btn.disabled = true;
-            } else {
-                miningPaused = false;
-            }
-
-            if (config.speedMultiplier !== undefined) {
-                speedMultiplier = config.speedMultiplier;
-            }
-        }
-    });
-
-    // REAL-TIME USER DATA LISTENER (For Admin Stop/Start & Balance)
-    userDocRef.onSnapshot(async (doc) => {
+    // Fast and Safe Data Loader (Fixes tab freezing issue)
+    async function initUserData() {
         try {
+            const doc = await userDocRef.get();
             if (doc.exists) {
                 const data = doc.data();
-                balance = data.balance !== undefined ? da
+                balance = data.balance !== undefined ? data.balance : 10;
+                miningEndTime = data.miningEndTime || 0;
+                profitPerHour = data.profitPerHour || 0;
+                boosterLevel = data.boosterLevel || 0;
+                completedTasks = data.completedTasks || {};
+                friendsList = data.friends || [];
+                miningPaused = data.miningPaused || false;
+
+                if (miningPaused) {
+                    const statusText = document.getElementById('miningStatusText');
+                    const btn = document.getElementById('claimBtn');
+                    if(statusText) statusText.innerText = "Mining Stopped by Admin ⛔";
+                    if(btn) btn.disabled = true;
+                }
+
+                if (tgUsername && (!data.username || data.username !== tgUsername)) {
+                    userDocRef.update({ username: tgUsername });
+                }
+
+                const balanceDisplay = document.getElementById('balanceDisplay');
+                if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
+                
+                const solInput = document.getElementById('solAddressInput');
+                if (data.solWallet && solInput) solInput.value = data.solWallet;
+                
+                const baseInput = document.getElementById('baseAddressInput');
+                if (data.baseWallet && baseInput) baseInput.value = data.baseWallet;
+
+                if (!miningPaused) checkMiningTimer();
+                renderBooster();
+                updateTasksUI();
+                renderFriendsList();
+            } else {
+                let assignedInviter = null;
+     
