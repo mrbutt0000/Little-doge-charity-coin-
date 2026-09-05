@@ -185,17 +185,13 @@
     const botUsername = "Littledogecoinbot";
     let userId = null;
     let inviterId = null;
-    let tgUsername = "";
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('start')) { inviterId = urlParams.get('start'); }
 
     if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
         const tg = window.Telegram.WebApp;
-        if (tg.initDataUnsafe.user) { 
-            tgUsername = tg.initDataUnsafe.user.username || "";
-            userId = tgUsername ? "u_" + tgUsername.toLowerCase() : "tg_" + tg.initDataUnsafe.user.id; 
-        }
+        if (tg.initDataUnsafe.user) { userId = "tg_" + tg.initDataUnsafe.user.id; }
         if (tg.initDataUnsafe.start_param) { inviterId = tg.initDataUnsafe.start_param; }
     }
 
@@ -213,9 +209,8 @@
         }
     }
 
-    const refKeyForLink = tgUsername || userId;
     const refLinkInput = document.getElementById('refLink');
-    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${refKeyForLink}`;
+    if(refLinkInput) refLinkInput.value = `https://t.me/${botUsername}?start=${userId}`;
 
     let balance = 10;
     let miningEndTime = 0;
@@ -224,6 +219,8 @@
     let boosterLevel = 0; 
     let completedTasks = {};
     let friendsList = [];
+    let miningPaused = false;
+    let speedMultiplier = 1.0;
     const CLAIM_DURATION = 3 * 60 * 60;
 
     const boosterLevels = [
@@ -313,220 +310,44 @@
     const db = firebase.firestore();
     const userDocRef = db.collection('users').doc(userId);
 
-    async function initUserData() {
+    // REAL-TIME LISTENER FOR MAINTENANCE & GLOBAL STOP
+    db.collection('settings').doc('appConfig').onSnapshot((doc) => {
+        if (doc.exists) {
+            const config = doc.data();
+            let maintDiv = document.getElementById('maintenanceOverlay');
+            if (config.maintenance) {
+                if (!maintDiv) {
+                    maintDiv = document.createElement('div');
+                    maintDiv.id = 'maintenanceOverlay';
+                    maintDiv.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:99999;text-align:center;padding:20px;";
+                    maintDiv.innerHTML = `<div style="font-size:60px;margin-bottom:15px;">🛠️</div><h2 style="color:#f59e0b;font-size:22px;margin-bottom:10px;">App Under Maintenance</h2><p style="color:#94a3b8;font-size:14px;">We are upgrading our servers. Please check back soon!</p>`;
+                    document.body.appendChild(maintDiv);
+                } else {
+                    maintDiv.style.display = 'flex';
+                }
+            } else {
+                if (maintDiv) maintDiv.style.display = 'none';
+            }
+
+            if (config.globalStop) {
+                miningPaused = true;
+                const statusText = document.getElementById('miningStatusText');
+                const btn = document.getElementById('claimBtn');
+                if(statusText) statusText.innerText = "Global Mining Paused ⛔";
+                if(btn) btn.disabled = true;
+            } else {
+                miningPaused = false;
+            }
+
+            if (config.speedMultiplier !== undefined) {
+                speedMultiplier = config.speedMultiplier;
+            }
+        }
+    });
+
+    // REAL-TIME USER DATA LISTENER (For Admin Stop/Start & Balance)
+    userDocRef.onSnapshot(async (doc) => {
         try {
-            const doc = await userDocRef.get();
             if (doc.exists) {
                 const data = doc.data();
-                balance = data.balance !== undefined ? data.balance : 10;
-                miningEndTime = data.miningEndTime || 0;
-                profitPerHour = data.profitPerHour || 0;
-                boosterLevel = data.boosterLevel || 0;
-                completedTasks = data.completedTasks || {};
-                friendsList = data.friends || [];
-
-                if (tgUsername && (!data.username || data.username !== tgUsername)) {
-                    userDocRef.update({ username: tgUsername });
-                }
-
-                const balanceDisplay = document.getElementById('balanceDisplay');
-                if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-                
-                const solInput = document.getElementById('solAddressInput');
-                if (data.solWallet && solInput) solInput.value = data.solWallet;
-                
-                const baseInput = document.getElementById('baseAddressInput');
-                if (data.baseWallet && baseInput) baseInput.value = data.baseWallet;
-
-                checkMiningTimer();
-                renderBooster();
-                updateTasksUI();
-                renderFriendsList();
-            } else {
-                let assignedInviter = null;
-                if (inviterId && inviterId !== userId) {
-                    assignedInviter = inviterId;
-                    let inviterDocRef = db.collection('users').doc(inviterId);
-                    let invDoc = await inviterDocRef.get();
-                    
-                    if (!invDoc.exists) {
-                        const qSnap = await db.collection('users').where('username', '==', inviterId).get();
-                        if (!qSnap.empty) {
-                            inviterDocRef = qSnap.docs[0].ref;
-                            assignedInviter = qSnap.docs[0].id;
-                            invDoc = await inviterDocRef.get();
-                        }
-                    }
-
-                    try {
-                        if (invDoc.exists) {
-                            let invData = invDoc.data();
-                            let currentFriends = invData.friends || [];
-                            let currentBalance = invData.balance || 0;
-                            const displayName = tgUsername ? `@${tgUsername}` : userId;
-                            
-                            if (!currentFriends.includes(displayName)) {
-                                currentFriends.push(displayName);
-                                await inviterDocRef.update({
-                                    balance: currentBalance + 20,
-                                    friends: currentFriends
-                                });
-                            }
-                        }
-                    } catch (err) {
-                        console.log("Referral transaction error");
-                    }
-                }
-
-                await userDocRef.set({ 
-                    balance: 10, 
-                    miningEndTime: 0, 
-                    profitPerHour: 0, 
-                    boosterLevel: 0, 
-                    completedTasks: {}, 
-                    friends: [],
-                    invitedBy: assignedInviter,
-                    deviceId: deviceId,
-                    username: tgUsername || "",
-                    solWallet: "",
-                    baseWallet: ""
-                });
-            }
-        } catch(e) {
-            console.log("Firestore error handled");
-        }
-    }
-
-    initUserData();
-
-    function handleClaim() {
-        balance += 5;
-        miningEndTime = Math.floor(Date.now() / 1000) + CLAIM_DURATION;
-        
-        const balanceDisplay = document.getElementById('balanceDisplay');
-        if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-
-        userDocRef.update({ 
-            balance: balance, 
-            miningEndTime: miningEndTime 
-        }).then(() => {
-            showToast("Successfully claimed 5 coins! 🎉");
-        });
-
-        startCountdown(CLAIM_DURATION);
-    }
-
-    function checkMiningTimer() {
-        const now = Math.floor(Date.now() / 1000);
-        if (miningEndTime > now) {
-            startCountdown(miningEndTime - now);
-        } else {
-            resetTimerUI();
-        }
-    }
-
-    function startCountdown(durationSeconds) {
-        if (timerInterval) clearInterval(timerInterval);
-        const btn = document.getElementById('claimBtn');
-        const statusText = document.getElementById('miningStatusText');
-        if(statusText) statusText.innerText = "Mining in Progress ⏳";
-        if(btn) btn.disabled = true;
-
-        let timeLeft = durationSeconds;
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            const h = Math.floor(timeLeft / 3600);
-            const m = Math.floor((timeLeft % 3600) / 60);
-            const s = timeLeft % 60;
-            const timerDisp = document.getElementById('timerDisplay');
-            if(timerDisp) {
-                timerDisp.innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            }
-
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                resetTimerUI();
-            }
-        }, 1000);
-    }
-
-    function resetTimerUI() {
-        const statusText = document.getElementById('miningStatusText');
-        const timerDisp = document.getElementById('timerDisplay');
-        const btn = document.getElementById('claimBtn');
-        if(statusText) statusText.innerText = "Ready to Claim";
-        if(timerDisp) timerDisp.innerText = "03:00:00";
-        if(btn) btn.disabled = false;
-    }
-
-    function startTaskTimer(taskKey, url, reward) {
-        if (completedTasks[taskKey]) return;
-        window.open(url, '_blank');
-        
-        const btn = document.getElementById(taskKey + 'Btn');
-        if(!btn) return;
-        
-        btn.disabled = true;
-        let timeLeft = 30;
-        btn.innerText = `Wait ${timeLeft}s ⏳`;
-
-        let taskInterval = setInterval(() => {
-            timeLeft--;
-            if (timeLeft > 0) {
-                btn.innerText = `Wait ${timeLeft}s ⏳`;
-            } else {
-                clearInterval(taskInterval);
-                balance += reward;
-                completedTasks[taskKey] = true;
-                
-                const balanceDisplay = document.getElementById('balanceDisplay');
-                if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-                updateTasksUI();
-
-                userDocRef.update({ balance: balance, completedTasks: completedTasks }).then(() => {
-                    showToast(`Task completed! +${reward} Coins added 🎯`);
-                });
-            }
-        }, 1000);
-    }
-
-    setInterval(() => {
-        if (profitPerHour > 0) {
-            balance += profitPerHour / 3600;
-            const balanceDisplay = document.getElementById('balanceDisplay');
-            if(balanceDisplay) balanceDisplay.innerText = Math.floor(balance);
-        }
-    }, 1000);
-
-    setInterval(() => {
-        userDocRef.update({ balance: balance });
-    }, 5000);
-
-    function copyRefLink() {
-        const copyText = document.getElementById('refLink');
-        if(!copyText) return;
-        copyText.select();
-        navigator.clipboard.writeText(copyText.value);
-        showToast("Invite link copied to clipboard! 🔗");
-    }
-
-    function saveSolWallet() {
-        const solInput = document.getElementById('solAddressInput');
-        if(!solInput) return;
-        const addr = solInput.value.trim();
-        if (addr.length < 10) { showToast("⚠️ Please enter a valid Solana address!"); return; }
-        userDocRef.update({ solWallet: addr });
-        showToast("Solana Wallet Saved Successfully! 🪐");
-    }
-
-    function saveBaseWallet() {
-        const baseInput = document.getElementById('baseAddressInput');
-        if(!baseInput) return;
-        const addr = baseInput.value.trim();
-        if (addr.length < 10) { showToast("⚠️ Please enter a valid Base address!"); return; }
-        userDocRef.update({ baseWallet: addr });
-        showToast("Base Wallet Saved Successfully! 🔵");
-    }
-</script>
-</body>
-</html>
+                balance = data.balance !== undefined ? da
