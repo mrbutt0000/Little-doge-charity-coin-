@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Little Doge Coin ($LDOGE) - Telegram Mining Portal</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg-main:#07090e; --bg-card:#121824; --bg-elevated:#1a2333; --border-clr:#1e293b;
+  --accent:#f59e0b; --accent-2:#fbbf24; --accent-gradient:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);
+  --blue:#38bdf8; --blue-gradient:linear-gradient(135deg,#3b82f6 0%,#2563eb 100%);
+  --ton-gradient:linear-gradient(135deg,#0098ea 0%,#0072b8 100%);
+  --base-gradient:linear-gradient(135deg,#0052ff 0%,#0038b8 100%);
+  --green:#10b981; --red:#ef4444; --text-main:#fff; --text-muted:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg-main);color:var(--text-main);display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;}
+.app-shell{max-width:480px;width:100%;margin:0 auto;display:flex;flex-direction:column;min-height:100vh;padding-bottom:90px;position:relative;}
+
+#loadingOverlay{position:fixed;inset:0;background:var(--bg-main);z-index:99999;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px;text-align:center;}
+#loadingOverlay .spinner{width:44px;height:44px;border:4px solid var(--border-clr);border-top-color:var(--accent);border-radius:50%;animation:spin 0.9s linear infinite;margin-bottom:18px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loadingOverlay p{color:var(--text-muted);font-size:14px;}
+#notTelegramBox{display:none;}
+#notTelegramBox h2{color:var(--accent);font-size:20px;margin-bottom:10px;}
+#notTelegramBox p{color:var(--text-muted);font-size:13px;margin-bottom:20px;line-height:1.6;}
+
+.btn-primary{width:100%;background:var(--accent-gradient);color:#07090e;font-weight:800;border:none;border-radius:14px;padding:15px;font-size:15px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;box-shadow:0 8px 20px rgba(245,158,11,.25);}
+.btn-primary:active{transform:scale(.98);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;box-shadow:none;}
+.btn-blue{background:var(--blue-gradient);color:#fff;}
+.btn-ton{background:var(--ton-gradient);color:#fff;}
+.btn-base{background:var(--base-gradient);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-sm{padding:10px;font-size:12px;}
+.input-field{width:100%;background:var(--bg-main);border:1px solid var(--border-clr);border-radius:14px;padding:14px 16px;color:#fff;font-size:14px;outline:none;transition:border-color .2s;margin-bottom:10px;}
+.input-field:focus{border-color:var(--accent);}
+select.input-field{appearance:none;}
+
+.tab-pane{display:none;padding:16px;flex:1;animation:fadeIn .3s ease;}
+.tab-pane.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.app-header{display:flex;justify-content:space-between;align-items:center;background:var(--bg-card);padding:16px 20px;border-bottom:1px solid var(--border-clr);border-radius:0 0 20px 20px;}
+.brand-title{font-size:16px;font-weight:900;color:var(--accent);display:flex;align-items:center;gap:6px;}
+.wallet-pill{background:var(--bg-main);border:1px solid var(--border-clr);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--blue);}
+.ton-icon-btn{position:relative;width:38px;height:38px;border-radius:50%;background:var(--bg-main);border:1px solid var(--border-clr);color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.ton-dot{position:absolute;top:-2px;right:-2px;width:10px;height:10px;border-radius:50%;background:#64748b;border:2px solid var(--bg-card);}
+.ton-dot.connected{background:var(--green);}
+
+.quick-stats{display:flex;gap:10px;padding:14px 16px 0 16px;}
+.stat-box{flex:1;background:var(--bg-card);border:1px solid var(--border-clr);border-radius:16px;padding:14px;text-align:center;}
+.stat-box .lbl{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.stat-box .val{font-size:17px;font-weight:900;color:var(--accent);}
+.stat-box.wallet .val{color:var(--blue);}
+
+.hero-card{background:var(--bg-card);border:1px solid var(--border-clr);border-radius:24px;padding:28px 20px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden;}
+.mining-orb-wrap{width:130px;height:130px;margin:0 auto 18px auto;border-radius:50%;background:radial-gradient(circle,#f59e0b 0%,#b45309 75%);border:4px solid var(--accent-2);display:flex;align-items:center;justify-content:center;font-size:52px;box-shadow:0 0 35px rgba(245,158,11,.35);cursor:pointer;transition:transform .2s;}
+.mining-orb-wrap.active{animation:pulse 1.6s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.45);}70%{box-shadow:0 0 0 22px rgba(245,158,11,0);}100%{box-shadow:0 0 0 0 rgba(245,158,11,0);}}
+.mining-orb-wrap:active{transform:scale(.95);}
+.balance-display{font-size:32px;font-weight:900;color:#fff;margin-bottom:4px;font-variant-numeric:tabular-nums;}
+.balance-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;}
+.countdown-timer{font-family:monospace;font-size:26px;font-weight:800;color:var(--blue);margin:12px 0;letter-spacing:2px;}
+.rate-note{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.5;}
+
+.card-modern{background:var(--bg-card);border:1px solid var(--border-clr);border-radius:18px;padding:20px;margin-bottom:16px;}
+.card-modern h3{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.card-modern.blue h3{color:var(--blue);}
+.hint{font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;}
+
+.member-item{display:flex;flex-direction:column;background:var(--bg-main);padding:10px 14px;border-radius:10px;margin-bottom:8px;border:1px solid var(--border-clr);font-size:13px;}
+.member-item .m-top{display:flex;justify-content:space-between;align-items:center;}
+.member-item .m-badge{font-size:10px;padding:2px 8px;border-radius:10px;}
+.member-item .m-badge.verified{background:rgba(16,185,129,.15);color:var(--green);}
+.member-item .m-badge.pending{background:rgba(245,158,11,.15);color:var(--accent);}
+
+.task-item{display:flex;justify-content:space-between;align-items:center;background:var(--bg-main);padding:12px 14px;border-radius:12px;margin-bottom:10px;border:1px solid var(--border-clr);}
+.task-btn{background:var(--blue-gradient);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:bold;cursor:pointer;min-width:110px;}
+.task-btn.done{background:var(--green);cursor:default;}
+.task-btn:disabled{opacity:.7;cursor:not-allowed;}
+
+.row-2{display:flex;gap:10px;}
+.row-2>*{flex:1;}
+
+.status-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.status-badge.locked{background:rgba(239,68,68,.15);color:#f87171;}
+.status-badge.pending{background:rgba(245,158,11,.15);color:var(--accent);}
+.status-badge.approved{background:rgba(16,185,129,.15);color:var(--green);}
+.status-badge.rejected{background:rgba(239,68,68,.15);color:#f87171;}
+.status-badge.connected{background:rgba(0,152,234,.15);color:#0098ea;}
+
+.file-input-wrap{background:var(--bg-main);border:1px dashed var(--border-clr);border-radius:12px;padding:14px;text-align:center;margin-bottom:10px;}
+.file-input-wrap input{display:none;}
+.file-input-wrap label{color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;}
+.file-name{font-size:11px;color:var(--text-muted);margin-top:6px;}
+
+#toastSystem{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:#1e293b;color:#fff;padding:12px 22px;border-radius:14px;font-size:13px;font-weight:700;z-index:100000;border:1px solid #334155;transition:transform .3s cubic-bezier(.175,.885,.32,1.275);opacity:0;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:90%;text-align:center;}
+#toastSystem.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;width:100%;background:rgba(18,24,36,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border-clr);display:flex;justify-content:space-around;padding:10px 0;z-index:999;max-width:480px;margin:0 auto;right:0;}
+.nav-btn{background:none;border:none;color:#64748b;font-size:11px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font-weight:600;flex:1;transition:color .2s;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn span{font-size:20px;margin-bottom:2px;}
+
+.divider{height:1px;background:var(--border-clr);margin:16px 0;}
+
+.faq-item{background:var(--bg-main);border:1px solid var(--border-clr);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;}
+.faq-item h4{font-size:13px;color:#fff;}
+.faq-answer{font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.6;display:none;}
+.faq-item.open .faq-answer{display:block;}
+.faq-search{margin-bottom:10px;}
+.faq-empty{font-size:12px;color:var(--text-muted);text-align:center;padding:14px;font-style:italic;}
+</style>
+</head>
+<body>
+
+<div id="toastSystem">Notification</div>
+
+<!-- LOADING / ENTRY -->
+<div id="loadingOverlay">
+  <div id="loadingSpinnerBox">
+    <div class="spinner"></div>
+    <p>Loading your $LDOGE profile…</p>
+  </div>
+  <div id="notTelegramBox">
+    <h2>🐕 $LDOGE Portal</h2>
+    <p>This app is built to run inside Telegram, using your Telegram account as your identity — no email or password needed.<br><br>Please open it through the Telegram bot to continue.</p>
+    <button class="btn-primary" onclick="startTestMode()">Continue in Test Mode (browser only)</button>
+    <p class="hint" style="margin-top:10px;">Test Mode is for development preview only — data is stored locally on this device, not synced with real Telegram users.</p>
+  </div>
+</div>
+
+<div class="app-shell">
+  <div class="app-header">
+    <div class="brand-title">🐕 $LDOGE PORTAL</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button id="tonHeaderBtn" class="ton-icon-btn" onclick="handleTonIconClick()" title="TON Wallet">💎<span id="tonDot" class="ton-dot"></span></button>
+      <div class="wallet-pill" id="headerUsername">@user</div>
+    </div>
+  </div>
+
+  <div class="quick-stats">
+    <div class="stat-box" style="flex:1;">
+      <div class="lbl">Mining Balance</div>
+      <div class="val" id="qsMining">0.00</div>
+    </div>
+  </div>
+
+  <!-- TAB 1: MINING -->
+  <div id="pane-mining" class="tab-pane active">
+    <div class="hero-card">
+      <div class="balance-label">Unverified Mining Balance</div>
+      <div class="balance-display" id="mainBalance">0.00</div>
+      <div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:16px;">LDOGE COINS</div>
+
+      <div class="mining-orb-wrap" id="orbWrap" onclick="triggerMining()"><span>⚡</span></div>
+
+      <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;" id="miningStatusText">24-Hour Cycle Ready</div>
+      <div class="countdown-timer" id="timerDisplay">00:00:00</div>
+      <div class="rate-note" id="rateNote">Loading current mining rate…</div>
+      <button onclick="triggerMining()" id="miningActionBtn" class="btn-primary" style="margin-top:14px;">Start Mining Session 🚀</button>
+    </div>
+    <div class="card-modern">
+      <h3>ℹ️ How mining works</h3>
+      <p class="hint">Start a session and your coins fill gradually over 24 hours — no instant claim. The base rate halves by 25% every 6 months. Verified referrals (see Team tab) boost your rate too, up to a cap.</p>
+    </div>
+  </div>
+
+  <!-- TAB 2: TEAM -->
+  <div id="pane-team" class="tab-pane">
+    <div class="card-modern">
+      <h3>👥 Referral Network</h3>
+      <p class="hint">Share your link to grow your team. A referral only counts toward your mining bonus once that person completes one full 24h mining cycle AND all 3 tasks.</p>
+      <div class="input-field" id="inviteLinkBox" style="text-align:center;font-size:11px;word-break:break-all;user-select:text;"></div>
+      <button onclick="copyInviteLink()" class="btn-primary" style="margin-bottom:16px;">Copy Invite Link 🔗</button>
+      <div class="row-2" style="margin-bottom:14px;">
+        <div style="background:var(--bg-main);padding:10px;border-radius:10px;text-align:center;border:1px solid var(--border-clr);">
+          <p style="font-size:10px;color:var(--text-muted);">TIER 1 USERS</p>
+          <h4 id="tier1Count" style="color:var(--accent);font-size:18px;">0</h4>
+        </div>
+        <div style="background:var(--bg-main);padding:10px;border-radius:10px;text-align:center;border:1px solid var(--border-clr);">
+          <p style="font-size:10px;color:var(--text-muted);">TIER 2 USERS</p>
+          <h4 id="tier2Count" style="color:var(--blue);font-size:18px;">0</h4>
+        </div>
+      </div>
+      <div style="background:var(--bg-main);padding:12px;border-radius:12px;border:1px solid var(--border-clr);margin-bottom:14px;text-align:center;">
+        <p style="font-size:10px;color:var(--text-muted);text-transform:uppercase;">Verified Referrals / Active Mining Bonus</p>
+        <h4 id="verifiedRefCount" style="color:var(--green);font-size:20px;margin-top:4px;">0 verified — +0.00 LDOGE/cycle</h4>
+      </div>
+      <h4 style="font-size:13px;color:#fff;margin-bottom:8px;">Direct Tier 1 Team:</h4>
+      <div id="tier1List" style="max-height:180px;overflow-y:auto;margin-bottom:10px;"></div>
+      <h4 style="font-size:13px;color:#fff;margin-bottom:8px;">Indirect Tier 2 Team:</h4>
+      <div id="tier2List" style="max-height:180px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: TASKS -->
+  <div id="pane-tasks" class="tab-pane">
+    <div class="card-modern">
+      <h3>🎯 One-Time Tasks</h3>
+      <p class="hint">Complete tasks once to earn LDOGE straight to your Mining balance. Migrate to Wallet whenever you choose.</p>
+
+      <div class="task-item">
+        <div><h4 style="font-size:13px;color:#fff;">Follow on X (Twitter)</h4><p style="font-size:11px;color:var(--accent);">+5.00 LDOGE</p></div>
+        <button id="taskX" class="task-btn" onclick="startTaskVerification('x',5,'https://x.com/LittleDogecoin')">Visit &amp; Claim</button>
+      </div>
+      <div class="task-item">
+        <div><h4 style="font-size:13px;color:#fff;">Join Telegram Channel</h4><p style="font-size:11px;color:var(--accent);">+5.00 LDOGE</p></div>
+        <button id="taskTg" class="task-btn" onclick="startTaskVerification('tg',5,'https://t.me/Little_Doge_coin')">Visit &amp; Claim</button>
+      </div>
+      <div class="task-item">
+        <div><h4 style="font-size:13px;color:#fff;">Visit Official Website</h4><p style="font-size:11px;color:var(--accent);">+5.00 LDOGE</p></div>
+        <button id="taskWeb" class="task-btn" onclick="startTaskVerification('web',5,'https://littledogecharity.online/')">Visit &amp; Claim</button>
+      </div>
+      <p class="hint" style="margin-top:6px;">✅ After you open the link, wait 15 seconds — the Claim button unlocks once verification completes. Completing all 3 tasks also helps your referrer's mining bonus.</p>
+    </div>
+  </div>
+
+  <!-- TAB 4: PROFILE -->
+  <div id="pane-profile" class="tab-pane">
+    <div class="card-modern">
+      <h3>👤 Account</h3>
+      <p style="font-size:13px;margin-bottom:6px;"><strong>Telegram Name:</strong> <span id="profName">-</span></p>
+      <p style="font-size:13px;">Telegram Username: <span id="profUsername" style="color:var(--accent);">-</span></p>
+    </div>
+
+    <div class="card-modern">
+      <h3>🤝 Referral Summary</h3>
+      <p style="font-size:13px;margin-bottom:4px;">Verified referrals: <strong id="profRefCount" style="color:var(--green);">0</strong></p>
+      <p style="font-size:13px;margin-bottom:10px;">Active mining bonus: <strong id="profRefBonus" style="color:var(--accent);">+0.00 LDOGE/cycle</strong></p>
+      <button onclick="switchTab('team', document.querySelectorAll('.nav-btn')[1])" class="btn-primary btn-sm btn-blue">View Full Team</button>
+    </div>
+
+    <div class="card-modern">
+      <h3>🔗 Official Project Links</h3>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <a href="https://x.com/LittleDogecoin" target="_blank" style="color:var(--blue);font-size:13px;text-decoration:none;">🐦 Official X (Twitter)</a>
+        <a href="https://t.me/Little_Doge_coin" target="_blank" style="color:var(--blue);font-size:13px;text-decoration:none;">📢 Official Telegram Channel</a>
+        <a href="https://littledogecharity.online/" target="_blank" style="color:var(--blue);font-size:13px;text-decoration:none;">🌐 Official Website</a>
+      </div>
+    </div>
+
+    <div class="card-modern">
+      <h3>💬 Help Center</h3>
+      <p class="hint">Ask about mining, referrals, tasks, wallet, migration or KYC. This assistant only answers questions about the $LDOGE project.</p>
+      <input type="text" id="faqSearch" class="input-field faq-search" placeholder="Search your question... e.g. 'how does mining work'" oninput="renderFaq()">
+      <div id="faqList"></div>
+      <p class="hint" style="margin-top:10px;">Didn't find your answer? Email us: <a href="mailto:littledogecharity@gmail.com" style="color:var(--blue);">littledogecharity@gmail.com</a></p>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('mining',this)"><span class="icon">⚡</span>Mining</button>
+    <button class="nav-btn" onclick="switchTab('team',this)"><span class="icon">👥</span>Team</button>
+    <button class="nav-btn" onclick="switchTab('tasks',this)"><span class="icon">🎯</span>Tasks</button>
+    <button class="nav-btn" onclick="switchTab('profile',this)"><span class="icon">👤</span>Profile</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — update these before going live
+   ============================================================ */
+const LAUNCH_DATE_ISO       = "2026-09-08T00:00:00Z"; // set to your real launch date
+const HALVING_INTERVAL_MONTHS = 6;
+const HALVING_FACTOR        = 0.75;
+const BASE_MINING_COINS     = 4.0;
+const MINING_CYCLE_SECONDS  = 24*60*60;
+const WELCOME_BONUS         = 5.0;
+const TASK_REWARD           = 5.0;
+const TASK_VERIFY_SECONDS   = 15;
+const REF_FIRST_TIER_COUNT  = 4;
+const REF_FIRST_BONUS       = 0.5;
+const REF_LATER_BONUS       = 0.1;
+const REF_BONUS_CAP         = 2.0;
+
+// ⚠️ REQUIRED: host a tonconnect-manifest.json file on your real domain and put its URL here
+// Example: "https://app.littledogecharity.online/tonconnect-manifest.json"
+const TON_MANIFEST_URL = "https://littledogecharity.online/tonconnect-manifest.json";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBr3myUI6FhyShlG5lrD_8LZtzvXszK2xw",
+  authDomain: "cyrusprotocol-b3080.firebaseapp.com",
+  databaseURL: "https://cyrusprotocol-b3080-default-rtdb.firebaseio.com",
+  projectId: "cyrusprotocol-b3080",
+  storageBucket: "cyrusprotocol-b3080.firebasestorage.app",
+  messagingSenderId: "457843406848",
+  appId: "1:457843406848:web:1e345eb2a0ce1a2bf280e5"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let activeUid = null;
+let myTelegramUsername = null;
+let userData = null;
+let miningLoopRef = null;
+let tonConnectUI = null;
+const TASK_VERIFY_TIMERS = {};
+
+/* ============================================================
+   UTIL
+   ============================================================ */
+function showToast(msg) {
+  const t = document.getElementById('toastSystem');
+  t.innerText = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function isLocal() { return activeUid && activeUid.startsWith('local_'); }
+async function persistUser(patch) {
+  Object.assign(userData, patch);
+  if (isLocal()) {
+    localStorage.setItem(activeUid, JSON.stringify(userData));
+  } else {
+    await db.ref('ldoge_portal_users/' + activeUid).update(patch);
+  }
+}
+function switchTab(tabName, btn) {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('pane-' + tabName).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+/* ============================================================
+   ENTRY — get Telegram identity, auto-create/load profile
+   ============================================================ */
+function getTelegramUser() {
+  try {
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      tg.ready(); tg.expand();
+      return tg.initDataUnsafe.user;
+    }
+  } catch(e) { console.log("Telegram SDK error", e); }
+  return null;
+}
+
+function startTestMode() {
+  const testId = "local_" + Date.now();
+  activeUid = testId;
+  myTelegramUsername = "test_user_" + Math.floor(Math.random()*10000);
+  initUserProfile("Test User", myTelegramUsername, null);
+}
+
+async function bootstrap() {
+  const tgUser = getTelegramUser();
+  if (!tgUser) {
+    document.getElementById('loadingSpinnerBox').style.display = 'none';
+    document.getElementById('notTelegramBox').style.display = 'block';
+    return;
+  }
+  activeUid = 'tg_' + tgUser.id;
+  myTelegramUsername = tgUser.username || ('tg' + tgUser.id);
+  const displayName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ') || myTelegramUsername;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const refParam = (window.Telegram.WebApp.initDataUnsafe.start_param) || urlParams.get('ref') || null;
+
+  await initUserProfile(displayName, myTelegramUsername, refParam);
+}
+
+async function initUserProfile(displayName, telegramUsername, refParam) {
+  try {
+    if (isLocal()) {
+      const existing = localStorage.getItem(activeUid);
+      userData = existing ? JSON.parse(existing) : null;
+    } else {
+      const snap = await db.ref('ldoge_portal_users/' + activeUid).once('value');
+      userData = snap.exists() ? snap.val() : null;
+    }
+
+    if (!userData) {
+      userData = {
+        id: activeUid, telegramUsername, displayName,
+        balance: WELCOME_BONUS,
+        miningStartTime: 0, miningEndTime: 0, miningPending: false,
+        cycleReward: 0, completedCycles: 0,
+        completedTasks: { x:false, tg:false, web:false },
+        tonWallet: "",
+        referredBy: refParam || null, createdAt: Date.now()
+      };
+      if (isLocal()) {
+        localStorage.setItem(activeUid, JSON.stringify(userData));
+      } else {
+        await db.ref('ldoge_portal_users/' + activeUid).set(userData);
+      }
+      showToast(`Welcome! ${WELCOME_BONUS.toFixed(2)} LDOGE bonus credited 🎉`);
+    }
+    if (!userData.completedTasks) userData.completedTasks = {};
+    if (userData.completedCycles === undefined) userData.completedCycles = 0;
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+    renderProfileHeader();
+    renderBalances();
+    await calculateTeamNetwork(userData.telegramUsername);
+    initTonConnect();
+    verifyTimerState();
+  } catch(e) {
+    console.log("Init error", e);
+    document.getElementById('loadingSpinnerBox').innerHTML =
+      `<p style="color:#f87171;margin-bottom:14px;">⚠️ Could not load your profile.<br><span style="font-size:11px;color:var(--text-muted);">${escapeHtml(e.message || String(e))}</span></p>
+       <button class="btn-primary" onclick="location.reload()">Retry</button>`;
+    showToast("⚠️ Could not load profile. Check your connection.");
+  }
+}
+
+function renderProfileHeader() {
+  document.getElementById('headerUsername').innerText = "@" + userData.telegramUsername;
+  document.getElementById('profName').innerText = userData.displayName;
+  document.getElementById('profUsername').innerText = "@" + userData.telegramUsername;
+  document.getElementById('inviteLinkBox').innerText = `https://t.me/Littledogecoinbot?start=${userData.telegramUsername}`;
+  ['x','tg','web'].forEach(k => {
+    if (userData.completedTasks[k]) {
+      const id = k === 'x' ? 'taskX' : (k === 'tg' ? 'taskTg' : 'taskWeb');
+      const b = document.getElementById(id);
+      b.innerText = "Claimed"; b.classList.add('done'); b.disabled = true;
+    }
+  });
+}
+
+/* ============================================================
+   HALVING + REFERRAL BONUS
+   ============================================================ */
+function getCurrentBaseReward() {
+  const launchMs = new Date(LAUNCH_DATE_ISO).getTime();
+  const now = Date.now();
+  const monthsElapsed = Math.max(0, (now - launchMs) / (1000*60*60*24*30.44));
+  const halvings = Math.floor(monthsElapsed / HALVING_INTERVAL_MONTHS);
+  return BASE_MINING_COINS * Math.pow(HALVING_FACTOR, halvings);
+}
+function isReferralVerified(u) {
+  const cyclesOk = (u.completedCycles || 0) >= 1;
+  const tasksOk = u.completedTasks && u.completedTasks.x && u.completedTasks.tg && u.completedTasks.web;
+  return cyclesOk && tasksOk;
+}
+function computeReferralBonus(verifiedCount) {
+  if (verifiedCount <= 0) return 0;
+  let bonus;
+  if (verifiedCount <= REF_FIRST_TIER_COUNT) bonus = verifiedCount * REF_FIRST_BONUS;
+  else bonus = REF_FIRST_TIER_COUNT * REF_FIRST_BONUS + (verifiedCount - REF_FIRST_TIER_COUNT) * REF_LATER_BONUS;
+  return Math.min(bonus, REF_BONUS_CAP);
+}
+async function getVerifiedReferralCount(myUsername) {
+  try {
+    const snap = await db.ref('ldoge_portal_users').once('value');
+    const all = snap.val() || {};
+    let count = 0;
+    for (let k in all) { if (all[k].referredBy === myUsername && isReferralVerified(all[k])) count++; }
+    return count;
+  } catch(e) { return 0; }
+}
+
+function renderBalances(liveMiningExtra) {
+  const settled = userData.balance || 0;
+  const shown = settled + (liveMiningExtra || 0);
+  const precision = liveMiningExtra ? 6 : 2;
+  document.getElementById('mainBalance').innerText = shown.toFixed(precision);
+  document.getElementById('qsMining').innerText = shown.toFixed(2);
+}
+
+/* ============================================================
+   TEAM NETWORK
+   ============================================================ */
+async function calculateTeamNetwork(myUsername) {
+  try {
+    const snap = await db.ref('ldoge_portal_users').once('value');
+    const all = snap.val() || {};
+    let tier1 = [], tier2 = [];
+    let verifiedCount = 0;
+
+    for (let k in all) {
+      if (all[k].referredBy === myUsername) {
+        tier1.push(all[k]);
+        if (isReferralVerified(all[k])) verifiedCount++;
+      }
+    }
+    const tier1Usernames = tier1.map(u => u.telegramUsername);
+    for (let k in all) {
+      if (all[k].referredBy && tier1Usernames.includes(all[k].referredBy)) tier2.push(all[k]);
+    }
+
+    document.getElementById('tier1Count').innerText = tier1.length;
+    document.getElementById('tier2Count').innerText = tier2.length;
+
+    const bonus = computeReferralBonus(verifiedCount);
+    document.getElementById('verifiedRefCount').innerText = `${verifiedCount} verified — +${bonus.toFixed(2)} LDOGE/cycle`;
+    document.getElementById('profRefCount').innerText = verifiedCount;
+    document.getElementById('profRefBonus').innerText = `+${bonus.toFixed(2)} LDOGE/cycle`;
+
+    const memberRow = (u) => {
+      const verified = isReferralVerified(u);
+      return `<div class="member-item">
+        <div class="m-top"><span>@${escapeHtml(u.telegramUsername)}</span><span class="m-badge ${verified ? 'verified' : 'pending'}">${verified ? 'Verified' : 'Pending'}</span></div>
+      </div>`;
+    };
+
+    document.getElementById('tier1List').innerHTML = tier1.length ? tier1.map(memberRow).join('') : '<p style="font-size:12px;color:var(--text-muted);text-align:center;">No Tier 1 members yet.</p>';
+    document.getElementById('tier2List').innerHTML = tier2.length ? tier2.map(memberRow).join('') : '<p style="font-size:12px;color:var(--text-muted);text-align:center;">No Tier 2 members yet.</p>';
+  } catch(err) { console.log("Team load error", err); }
+}
+
+/* ============================================================
+   TASKS
+   ============================================================ */
+function taskBtnId(taskKey) { return taskKey === 'x' ? 'taskX' : (taskKey === 'tg' ? 'taskTg' : 'taskWeb'); }
+function startTaskVerification(taskKey, rewardAmount, externalLink) {
+  if (userData.completedTasks && userData.completedTasks[taskKey]) { showToast("⚠️ Task already completed!"); return; }
+  if (TASK_VERIFY_TIMERS[taskKey]) { showToast("⏳ Verification already in progress, please wait!"); return; }
+
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+    window.Telegram.WebApp.openLink(externalLink);
+  } else {
+    window.open(externalLink, '_blank');
+  }
+
+  const btn = document.getElementById(taskBtnId(taskKey));
+  btn.disabled = true;
+  let left = TASK_VERIFY_SECONDS;
+  btn.innerText = `Wait ${left}s...`;
+
+  TASK_VERIFY_TIMERS[taskKey] = setInterval(() => {
+    left--;
+    if (left <= 0) {
+      clearInterval(TASK_VERIFY_TIMERS[taskKey]);
+      delete TASK_VERIFY_TIMERS[taskKey];
+      btn.disabled = false;
+      btn.innerText = "Claim Reward";
+      btn.onclick = () => completeTask(taskKey, rewardAmount);
+      showToast("✅ Verified! You can claim your reward now.");
+    } else {
+      btn.innerText = `Wait ${left}s...`;
+    }
+  }, 1000);
+}
+async function completeTask(taskKey, rewardAmount) {
+  if (userData.completedTasks && userData.completedTasks[taskKey]) { showToast("⚠️ Task already completed!"); return; }
+  const completedTasks = Object.assign({}, userData.completedTasks, { [taskKey]: true });
+  const balance = (userData.balance || 0) + rewardAmount;
+  await persistUser({ completedTasks, balance });
+  renderBalances();
+  const btn = document.getElementById(taskBtnId(taskKey));
+  btn.innerText = "Claimed"; btn.classList.add('done'); btn.disabled = true;
+  btn.onclick = null;
+  showToast(`Successfully claimed +${rewardAmount.toFixed(2)} LDOGE to Mining balance! 🎉`);
+}
+
+/* ============================================================
+   MINING
+   ============================================================ */
+async function triggerMining() {
+  const now = Math.floor(Date.now() / 1000);
+  if (userData.miningEndTime && userData.miningEndTime > now) { showToast("⚠️ Mining session already active!"); return; }
+
+  const base = getCurrentBaseReward();
+  const verifiedCount = await getVerifiedReferralCount(userData.telegramUsername);
+  const refBonus = computeReferralBonus(verifiedCount);
+  const totalReward = base + refBonus;
+
+  const endTime = now + MINING_CYCLE_SECONDS;
+  await persistUser({ miningStartTime: now, miningEndTime: endTime, miningPending: true, cycleReward: totalReward });
+  showToast(`Mining Session Started! Rate: ${totalReward.toFixed(4)} LDOGE this cycle ⚡`);
+  runMiningLoop();
+}
+function verifyTimerState() {
+  const now = Math.floor(Date.now() / 1000);
+  if (userData.miningEndTime && userData.miningEndTime > now) runMiningLoop();
+  else if (userData.miningPending) creditMiningReward();
+  else { resetMiningUI(); updateRateNote(); }
+}
+async function updateRateNote() {
+  const base = getCurrentBaseReward();
+  const verifiedCount = userData ? await getVerifiedReferralCount(userData.telegramUsername) : 0;
+  const refBonus = computeReferralBonus(verifiedCount);
+  const total = base + refBonus;
+  document.getElementById('rateNote').innerText =
+    `Current rate: ${total.toFixed(4)} LDOGE/24h (base ${base.toFixed(4)} + referral bonus ${refBonus.toFixed(2)}) — fills in real time, every second`;
+}
+function runMiningLoop() {
+  if (miningLoopRef) clearInterval(miningLoopRef);
+  document.getElementById('orbWrap').classList.add('active');
+  document.getElementById('miningActionBtn').innerText = "Mining Active ⚡";
+  document.getElementById('miningActionBtn').disabled = true;
+  document.getElementById('miningStatusText').innerText = "Session in progress";
+  const totalReward = userData.cycleReward || BASE_MINING_COINS;
+  document.getElementById('rateNote').innerText = `This cycle will pay ${totalReward.toFixed(4)} LDOGE total`;
+
+  const tick = () => {
+    const now = Math.floor(Date.now() / 1000);
+    const left = userData.miningEndTime - now;
+    if (left <= 0) { clearInterval(miningLoopRef); renderBalances(); creditMiningReward(); return; }
+    const elapsed = MINING_CYCLE_SECONDS - left;
+    const accrued = Math.min(totalReward, elapsed * (totalReward / MINING_CYCLE_SECONDS));
+    renderBalances(accrued);
+    const h = Math.floor(left / 3600), m = Math.floor((left % 3600) / 60), s = left % 60;
+    document.getElementById('timerDisplay').innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  };
+  tick();
+  miningLoopRef = setInterval(tick, 1000);
+}
+async function creditMiningReward() {
+  const reward = userData.cycleReward || BASE_MINING_COINS;
+  const newBalance = (userData.balance || 0) + reward;
+  const newCycles = (userData.completedCycles || 0) + 1;
+  await persistUser({ balance: newBalance, miningPending: false, miningEndTime: 0, completedCycles: newCycles });
+  renderBalances(); resetMiningUI(); updateRateNote();
+  showToast(`Mining Cycle Complete! +${reward.toFixed(4)} LDOGE credited 🎉`);
+}
+function resetMiningUI() {
+  document.getElementById('orbWrap').classList.remove('active');
+  document.getElementById('timerDisplay').innerText = "00:00:00";
+  document.getElementById('miningActionBtn').innerText = "Start Mining Session 🚀";
+  document.getElementById('miningActionBtn').disabled = false;
+  document.getElementById('miningStatusText').innerText = "24-Hour Cycle Ready";
+}
+
+/* ============================================================
+   TON WALLET — connect icon lives in the header
+   ============================================================ */
+function initTonConnect() {
+  try {
+    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: TON_MANIFEST_URL });
+    tonConnectUI.onStatusChange(wallet => {
+      if (wallet && wallet.account) {
+        persistUser({ tonWallet: wallet.account.address });
+        renderTonStatus(wallet.account.address);
+        showToast("TON wallet connected! 🔗");
+      } else {
+        renderTonStatus(null);
+      }
+    });
+    if (tonConnectUI.account) renderTonStatus(tonConnectUI.account.address);
+    else renderTonStatus(userData.tonWallet || null);
+  } catch(e) {
+    console.log("TON Connect init failed", e);
+  }
+}
+function renderTonStatus(address) {
+  const dot = document.getElementById('tonDot');
+  if (address) dot.classList.add('connected');
+  else dot.classList.remove('connected');
+}
+function connectTonWallet() {
+  if (!tonConnectUI) { showToast("⚠️ TON Connect not ready yet, try again in a moment."); return; }
+  tonConnectUI.openModal();
+}
+async function disconnectTonWallet() {
+  if (tonConnectUI) await tonConnectUI.disconnect();
+  await persistUser({ tonWallet: "" });
+  renderTonStatus(null);
+  showToast("TON wallet disconnected.");
+}
+function handleTonIconClick() {
+  const address = (tonConnectUI && tonConnectUI.account) ? tonConnectUI.account.address : (userData.tonWallet || null);
+  if (address) {
+    const short = address.slice(0,6) + "..." + address.slice(-4);
+    if (confirm(`TON Wallet connected:\n${short}\n\nDisconnect this wallet?`)) {
+      disconnectTonWallet();
+    }
+  } else {
+    connectTonWallet();
+  }
+}
+
+/* ============================================================
+   HELP CENTER — rule-based FAQ (project topics only)
+   ============================================================ */
+const FAQ_DATA = [
+  { q: "How does mining work?", kw: ["mining","mine","how does mining","cycle","24 hour","24h"],
+    a: "Tap the mining orb to start a 24-hour session. Your coins fill up gradually every second — there's no instant claim. When the cycle finishes, the total is credited to your Mining balance automatically." },
+  { q: "Why does the mining rate change over time?", kw: ["halving","rate change","less coins","reward drop","why less"],
+    a: "The base mining rate halves by 25% every 6 months from launch. This keeps the total coin supply sustainable over the project's lifetime — mining earlier gives you a higher rate." },
+  { q: "How do referrals boost my mining rate?", kw: ["referral","refer","invite","team","bonus","boost"],
+    a: "Share your invite link from the Team tab. A referral only counts once that person completes one full 24h mining cycle AND all 3 tasks. Verified referrals add a bonus — first 4 referrals add 0.5 LDOGE each, referrals after that add 0.1 LDOGE each, up to a maximum bonus of 2.0 LDOGE per cycle." },
+  { q: "What tasks are available and how do I claim them?", kw: ["task","tasks","claim","x twitter","telegram task","website task"],
+    a: "There are 3 one-time tasks: Follow on X, Join Telegram, and Visit the Website — each pays 5 LDOGE to your Mining balance. Tap a task to open the link, wait 15 seconds for verification, then tap Claim Reward." },
+  { q: "How does the TON wallet connect?", kw: ["ton wallet","ton connect","connect wallet","wallet icon"],
+    a: "Tap the 💎 icon in the top header — a picker will open showing supported TON wallets (like Tonkeeper or MyTonWallet) so you can choose and connect automatically. Tap the icon again anytime to disconnect." },
+  { q: "What is the total token supply and allocation?", kw: ["supply","tokenomics","total supply","allocation","distribution"],
+    a: "Total supply is 1,000,000,000 $LDOGE: 25% Community Airdrop, 40% DEX Liquidity Pool, 20% Locked until CEX listing, 10% Charity Fund, and 5% Team (locked 2 years, unlocking gradually every 6 months)." },
+  { q: "What blockchain is $LDOGE on?", kw: ["blockchain","network","chain","base network"],
+    a: "$LDOGE runs on the Base network, with TON wallet support built into this Telegram app." },
+  { q: "Where can I follow official updates?", kw: ["official link","twitter","x","telegram","website","social"],
+    a: "Official X: x.com/LittleDogecoin — Official Telegram: t.me/Little_Doge_coin — Website: littledogecharity.online" },
+];
+function renderFaq() {
+  const query = (document.getElementById('faqSearch').value || "").trim().toLowerCase();
+  const list = document.getElementById('faqList');
+  let items = FAQ_DATA;
+  if (query.length > 0) {
+    items = FAQ_DATA.filter(item =>
+      item.q.toLowerCase().includes(query) || item.a.toLowerCase().includes(query) ||
+      item.kw.some(k => k.includes(query) || query.includes(k))
+    );
+  }
+  if (items.length === 0) {
+    list.innerHTML = '<p class="faq-empty">No matching answer found. Try different words, or email littledogecharity@gmail.com.</p>';
+    return;
+  }
+  list.innerHTML = items.map(item => `
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <h4>${escapeHtml(item.q)}</h4>
+      <div class="faq-answer">${escapeHtml(item.a)}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   MISC
+   ============================================================ */
+function copyInviteLink() {
+  const text = document.getElementById('inviteLinkBox').innerText;
+  navigator.clipboard.writeText(text);
+  showToast("Invite link copied to clipboard! 🔗");
+}
+
+renderFaq();
+bootstrap();
+</script>
+</body>
+</html>
